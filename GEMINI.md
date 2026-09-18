@@ -85,7 +85,10 @@ All agents working on issues in this repository MUST strictly adhere to the foll
 4. **Frontend Live Preview & Verification:**
    - If changes affect the Frontend/UI, start the local dev server (`npm run dev`) and open the live preview.
    - Take screenshots to verify both Desktop and Mobile viewports and validate interaction states.
-5. **Strict User Approval & No Auto-Merge:**
-   - Present the implementation, review findings, and UI preview to the USER for review.
+5. **Push Branch & Open Pull Request (PR):**
+   - Push the feature branch to remote origin (`git push -u origin <branch-name>`).
+   - Open a Pull Request pointing to `main` on GitHub with a clear description, summary of changes, evidence, and reference to the issue (e.g. `closes #<number>`).
+6. **Strict User Approval & No Auto-Merge:**
+   - Present the PR link, implementation summary, review findings, and UI preview to the USER for review.
    - Explicitly ask the USER for confirmation whether they are satisfied with the result.
-   - **CRITICAL RULE: DO NOT merge the branch back into `main` automatically.** Wait for the USER's explicit instruction/approval before performing any merge.
+   - **CRITICAL RULE: DO NOT merge the branch or PR back into `main` automatically.** Wait for the USER's explicit instruction/approval before performing any merge.

@@ -32,7 +32,7 @@ import {
 
 export interface StepPersonalInfoProps {
   /** React Hook Form instance for PatientFormData */
-  form: UseFormReturn<PatientFormData>;
+  form: UseFormReturn<PatientFormData, any, any>;
   /** Callback fired when Step 1 validation passes and user advances to Step 2 */
   onNext: () => void;
   /** Optional custom CSS classes */

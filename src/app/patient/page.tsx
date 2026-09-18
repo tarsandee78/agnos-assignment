@@ -13,15 +13,25 @@ import {
   usePatientDraft,
   mergeDraftWithDefault,
 } from "@/hooks/usePatientDraft";
+import {
+  broadcastFormSubmit,
+  trackPatientPresence,
+} from "@/lib/realtime";
 import { PatientStepper } from "@/components/patient/PatientStepper";
 import { StepPersonalInfo } from "@/components/patient/StepPersonalInfo";
 import { StepContactInfo } from "@/components/patient/StepContactInfo";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { CheckCircle2, Cloud, ArrowLeft, HeartPulse } from "lucide-react";
+import { StepEmergencyReview } from "@/components/patient/StepEmergencyReview";
+import { SubmissionSuccessDialog } from "@/components/patient/SubmissionSuccessDialog";
+import { CheckCircle2, Cloud, HeartPulse } from "lucide-react";
 
 export default function PatientPage() {
   const [currentStep, setCurrentStep] = React.useState<PatientFormStep>(1);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [submissionError, setSubmissionError] = React.useState<string | null>(null);
+  const [isSuccessOpen, setIsSuccessOpen] = React.useState(false);
+  const [submittedData, setSubmittedData] = React.useState<PatientFormData | null>(null);
+  const [submittedAt, setSubmittedAt] = React.useState<string | null>(null);
+  const [referenceId, setReferenceId] = React.useState<string>("");
 
   const form = useForm<PatientFormData>({
     mode: "onBlur",
@@ -29,11 +39,11 @@ export default function PatientPage() {
     defaultValues: defaultPatientFormData,
   });
 
-  const { reset, watch } = form;
+  const { reset, watch, getValues, trigger, formState: { errors } } = form;
   const watchedFormData = watch();
 
   // Auto-save draft hook
-  const { draft, isLoaded, isSaving, lastSavedAt } = usePatientDraft({
+  const { draft, isLoaded, isSaving, lastSavedAt, clearDraft } = usePatientDraft({
     formData: watchedFormData,
     currentStep,
   });
@@ -56,26 +66,86 @@ export default function PatientPage() {
       setCurrentStep(targetStep);
       return;
     }
-    // Advancing forward requires validation of current steps
+    // Advancing forward requires validation of previous steps
     if (currentStep === 1) {
-      const isPersonalValid = await form.trigger("personal");
+      const isPersonalValid = await trigger("personal");
       if (!isPersonalValid) return;
       if (targetStep === 2) {
         setCurrentStep(2);
       } else if (targetStep === 3) {
-        const isContactValid = await form.trigger("contact");
+        const isContactValid = await trigger("contact");
         if (isContactValid) {
           setCurrentStep(3);
         }
       }
     } else if (currentStep === 2) {
       if (targetStep === 3) {
-        const isContactValid = await form.trigger("contact");
+        const isContactValid = await trigger("contact");
         if (isContactValid) {
           setCurrentStep(3);
         }
       }
     }
+  };
+
+  // Final Form Submission handler
+  const handleSubmit = async () => {
+    setSubmissionError(null);
+    setIsSubmitting(true);
+
+    try {
+      // Validate all fields across all steps
+      const isFormValid = await trigger();
+      if (!isFormValid) {
+        if (errors.personal) {
+          setSubmissionError("Please review and fix errors in Step 1 (Personal Details)");
+        } else if (errors.contact) {
+          setSubmissionError("Please review and fix errors in Step 2 (Contact & Address)");
+        } else if (errors.emergency) {
+          setSubmissionError("Please review and fix errors in Emergency Contact");
+        } else {
+          setSubmissionError("Please ensure all required fields are correctly completed");
+        }
+        setIsSubmitting(false);
+        return;
+      }
+
+      const currentValues = getValues();
+      const nowIso = new Date().toISOString();
+      const datePart = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+      const randPart = Math.floor(1000 + Math.random() * 9000);
+      const generatedRefId = `AGN-${datePart}-${randPart}`;
+
+      // 1. Broadcast submission event to Realtime & update presence
+      await broadcastFormSubmit(currentValues, { submittedAt: nowIso });
+      await trackPatientPresence("submitted", { currentStep: 3 });
+
+      // 2. Clear auto-saved draft so user isn't stuck with completed intake on reload
+      clearDraft();
+
+      // 3. Update local state & trigger confirmation modal
+      setSubmittedData(currentValues);
+      setSubmittedAt(nowIso);
+      setReferenceId(generatedRefId);
+      setIsSuccessOpen(true);
+    } catch (err) {
+      console.error("[PatientPage] Submission failed:", err);
+      setSubmissionError("An unexpected error occurred while submitting. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Reset and prepare fresh registration for another patient
+  const handleResetAndNew = () => {
+    setIsSuccessOpen(false);
+    clearDraft();
+    reset(defaultPatientFormData);
+    setCurrentStep(1);
+    setSubmittedData(null);
+    setSubmittedAt(null);
+    setReferenceId("");
+    setSubmissionError(null);
   };
 
   return (
@@ -142,33 +212,26 @@ export default function PatientPage() {
         )}
 
         {currentStep === 3 && (
-          <Card className="border-border/80 shadow-xs">
-            <CardHeader>
-              <CardTitle className="text-lg font-bold">
-                Step 3: Emergency Contact & Confirmation (ข้อมูลติดต่อฉุกเฉิน)
-              </CardTitle>
-              <CardDescription>
-                Next component in roadmap (Issue #13)
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4 py-8 text-center">
-              <p className="text-muted-foreground text-sm">
-                Emergency contact details and final confirmation summary.
-              </p>
-              <div className="pt-4 flex justify-start items-center">
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentStep(2)}
-                  className="min-h-[44px] h-11 px-5"
-                >
-                  <ArrowLeft className="size-4 mr-2" />
-                  Back to Contact Details
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <StepEmergencyReview
+            form={form}
+            onSubmit={handleSubmit}
+            onBack={() => setCurrentStep(2)}
+            onEditStep={(step) => setCurrentStep(step)}
+            isSubmitting={isSubmitting}
+            submissionError={submissionError}
+          />
         )}
       </main>
+
+      {/* Submission Success Dialog */}
+      <SubmissionSuccessDialog
+        open={isSuccessOpen}
+        onOpenChange={setIsSuccessOpen}
+        data={submittedData}
+        referenceId={referenceId}
+        submittedAt={submittedAt || undefined}
+        onResetAndNew={handleResetAndNew}
+      />
     </div>
   );
 }

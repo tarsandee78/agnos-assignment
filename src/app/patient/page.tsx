@@ -15,6 +15,7 @@ import {
 } from "@/hooks/usePatientDraft";
 import { PatientStepper } from "@/components/patient/PatientStepper";
 import { StepPersonalInfo } from "@/components/patient/StepPersonalInfo";
+import { StepContactInfo } from "@/components/patient/StepContactInfo";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Cloud, ArrowLeft, HeartPulse } from "lucide-react";
@@ -55,11 +56,24 @@ export default function PatientPage() {
       setCurrentStep(targetStep);
       return;
     }
-    // Advancing forward requires current step validation
+    // Advancing forward requires validation of current steps
     if (currentStep === 1) {
-      const isValid = await form.trigger("personal");
-      if (isValid) {
-        setCurrentStep(targetStep);
+      const isPersonalValid = await form.trigger("personal");
+      if (!isPersonalValid) return;
+      if (targetStep === 2) {
+        setCurrentStep(2);
+      } else if (targetStep === 3) {
+        const isContactValid = await form.trigger("contact");
+        if (isContactValid) {
+          setCurrentStep(3);
+        }
+      }
+    } else if (currentStep === 2) {
+      if (targetStep === 3) {
+        const isContactValid = await form.trigger("contact");
+        if (isContactValid) {
+          setCurrentStep(3);
+        }
       }
     }
   };
@@ -120,31 +134,11 @@ export default function PatientPage() {
         )}
 
         {currentStep === 2 && (
-          <Card className="border-border/80 shadow-xs">
-            <CardHeader>
-              <CardTitle className="text-lg font-bold">
-                Step 2: Contact Details & Address (ข้อมูลติดต่อและที่อยู่)
-              </CardTitle>
-              <CardDescription>
-                Next component in roadmap (Issue #12)
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4 py-8 text-center">
-              <p className="text-muted-foreground text-sm">
-                Phone Number, Email, and Residential Address will be implemented in Step 2.
-              </p>
-              <div className="pt-4 flex justify-start items-center">
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentStep(1)}
-                  className="min-h-[44px] h-11 px-5 touch-target"
-                >
-                  <ArrowLeft className="size-4 mr-2" />
-                  Back to Personal Details
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <StepContactInfo
+            form={form}
+            onNext={() => setCurrentStep(3)}
+            onBack={() => setCurrentStep(1)}
+          />
         )}
 
         {currentStep === 3 && (

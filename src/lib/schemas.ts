@@ -17,6 +17,68 @@ export function isValidPhoneNumber(val: string): boolean {
 }
 
 /**
+ * Formats raw phone number input into standard readable representations:
+ * - Thai mobile (10 digits): 08X-XXX-XXXX
+ * - Bangkok landline (9 digits): 02-XXX-XXXX
+ * - Thailand international prefix (+66): +66 8X XXX XXXX or +66 2 XXX XXXX
+ * - Generic international (+...): preserves '+' and standard formatting up to 15 digits
+ */
+export function formatPhoneNumber(val: string): string {
+  if (!val) return '';
+
+  const trimmed = val.trim();
+
+  // 1. International numbers starting with '+'
+  if (trimmed.startsWith('+')) {
+    const digitsOnly = trimmed.slice(1).replace(/\D/g, '');
+
+    // Thailand international prefix: +66
+    if (digitsOnly.startsWith('66')) {
+      let thaiDigits = digitsOnly.slice(2);
+      // Strip redundant leading zero if entered (e.g. +660812345678 -> 812345678)
+      if (thaiDigits.startsWith('0')) {
+        thaiDigits = thaiDigits.slice(1);
+      }
+      if (thaiDigits.length === 0) return '+66';
+
+      // Bangkok landline (starts with 2): +66 2 XXX XXXX (8 digits total)
+      if (thaiDigits.startsWith('2')) {
+        if (thaiDigits.length <= 1) return `+66 ${thaiDigits}`;
+        if (thaiDigits.length <= 4)
+          return `+66 ${thaiDigits.slice(0, 1)} ${thaiDigits.slice(1)}`;
+        return `+66 ${thaiDigits.slice(0, 1)} ${thaiDigits.slice(1, 4)} ${thaiDigits.slice(4, 8)}`;
+      }
+
+      // Mobile / provincial (e.g. 8X XXX XXXX - 9 digits total)
+      if (thaiDigits.length <= 2) return `+66 ${thaiDigits}`;
+      if (thaiDigits.length <= 5)
+        return `+66 ${thaiDigits.slice(0, 2)} ${thaiDigits.slice(2)}`;
+      return `+66 ${thaiDigits.slice(0, 2)} ${thaiDigits.slice(2, 5)} ${thaiDigits.slice(5, 9)}`;
+    }
+
+    // Generic international format (E.164: preserve '+' and digits up to 15 chars cleanly)
+    const cleaned = trimmed.replace(/[^\d+\s-]/g, '').slice(0, 20);
+    return cleaned;
+  }
+
+  // 2. Domestic numbers (starting with 0 or local digits)
+  const digits = val.replace(/\D/g, '').slice(0, 10);
+  if (digits.length === 0) return '';
+
+  // Bangkok landline (02): 9 digits (02-XXX-XXXX)
+  if (digits.startsWith('02')) {
+    if (digits.length <= 2) return digits;
+    if (digits.length <= 5) return `${digits.slice(0, 2)}-${digits.slice(2)}`;
+    return `${digits.slice(0, 2)}-${digits.slice(2, 5)}-${digits.slice(5, 9)}`;
+  }
+
+  // Standard Thai mobile (06, 08, 09) and provincial landlines (10 digits: 08X-XXX-XXXX)
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+}
+
+/**
  * Validates date of birth:
  * 1. Must match YYYY-MM-DD format
  * 2. Must be a real calendar date (handles leap years, days per month)

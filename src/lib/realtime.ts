@@ -7,7 +7,7 @@ import {
 } from './schemas';
 
 // ============================================================================
-// 1. Constants & Types
+// 1. Constants & Types (Spec Compliant & Minimal)
 // ============================================================================
 
 export const DEFAULT_ROOM_ID = 'patient-room';
@@ -15,36 +15,24 @@ export const DEFAULT_ROOM_ID = 'patient-room';
 export const REALTIME_EVENTS = {
   FORM_UPDATE: 'form-update',
   FORM_SUBMIT: 'form-submit',
-  FORM_RESET: 'form-reset',
 } as const;
 
 export type RealtimeEventType =
   (typeof REALTIME_EVENTS)[keyof typeof REALTIME_EVENTS];
 
-/**
- * Real-time connection states for robust UI status indicators
- */
 export type RealtimeConnectionStatus =
   | 'CONNECTING'
   | 'CONNECTED'
   | 'DISCONNECTED'
-  | 'ERROR'
   | 'FALLBACK_LOCAL';
 
-/**
- * Patient presence states monitored by staff
- */
 export type PatientPresenceStatus =
   | 'typing'
   | 'idle'
   | 'submitted'
   | 'offline';
 
-/**
- * Payload sent during keystrokes and step transitions
- */
 export interface FormUpdatePayload {
-  id: string; // Unique message ID for deduplication
   formData: PartialPatientFormData;
   lastFieldChanged?: string;
   currentStep?: PatientFormStep;
@@ -52,406 +40,192 @@ export interface FormUpdatePayload {
   patientId?: string;
 }
 
-/**
- * Payload sent upon final form submission
- */
 export interface FormSubmitPayload {
-  id: string;
   formData: PatientFormData;
   submittedAt: string;
   patientId?: string;
 }
 
-/**
- * Payload sent upon form reset
- */
-export interface FormResetPayload {
-  id: string;
-  timestamp: number;
-  patientId?: string;
-}
-
-/**
- * Payload tracked for presence status
- */
 export interface PatientPresencePayload {
   status: PatientPresenceStatus;
+  room: string;
+  timestamp: number;
   patientId?: string;
   currentStep?: PatientFormStep;
-  lastActiveAt: number;
-  updatedAt: number;
-  deviceType?: 'mobile' | 'desktop' | 'tablet';
   metadata?: Record<string, unknown>;
 }
 
-/**
- * Internal message wrapper for BroadcastChannel cross-tab communication
- */
-type LocalChannelMessage =
-  | {
-      type: typeof REALTIME_EVENTS.FORM_UPDATE;
-      payload: FormUpdatePayload;
-    }
-  | {
-      type: typeof REALTIME_EVENTS.FORM_SUBMIT;
-      payload: FormSubmitPayload;
-    }
-  | {
-      type: typeof REALTIME_EVENTS.FORM_RESET;
-      payload: FormResetPayload;
-    }
-  | {
-      type: 'presence-update';
-      payload: PatientPresencePayload;
-    };
-
-/**
- * Options when subscribing to a real-time patient room
- */
 export interface SubscribeRoomOptions {
-  roomId?: string;
-  isStaff?: boolean;
   patientId?: string;
   onFormUpdate?: (payload: FormUpdatePayload) => void;
   onFormSubmit?: (payload: FormSubmitPayload) => void;
-  onFormReset?: (payload: FormResetPayload) => void;
   onPresenceChange?: (
     presence: PatientPresencePayload | null,
     allPresences: Record<string, PatientPresencePayload[]>
   ) => void;
   onStatusChange?: (status: RealtimeConnectionStatus) => void;
-  onError?: (error: Error) => void;
 }
 
-export interface BroadcastUpdateOptions {
-  lastFieldChanged?: string;
-  currentStep?: PatientFormStep;
-  patientId?: string;
-  roomId?: string;
-}
-
-export interface BroadcastSubmitOptions {
-  submittedAt?: string;
-  patientId?: string;
-  roomId?: string;
-}
-
-export interface TrackPresenceOptions {
-  patientId?: string;
-  currentStep?: PatientFormStep;
-  roomId?: string;
-  metadata?: Record<string, unknown>;
-}
+type LocalMessage =
+  | { type: typeof REALTIME_EVENTS.FORM_UPDATE; payload: FormUpdatePayload }
+  | { type: typeof REALTIME_EVENTS.FORM_SUBMIT; payload: FormSubmitPayload }
+  | { type: 'presence'; payload: PatientPresencePayload };
 
 // ============================================================================
-// 2. Helper Utilities
+// 2. Single-Room Channel Manager with Local Fallback
 // ============================================================================
 
-function generateId(prefix = 'msg'): string {
-  return `${prefix}_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-}
+class PatientRoomManager {
+  private channel: RealtimeChannel | null = null;
+  private localBroadcast: BroadcastChannel | null = null;
+  private status: RealtimeConnectionStatus = 'DISCONNECTED';
+  private currentPresence: PatientPresencePayload | null = null;
+  private listeners = new Set<SubscribeRoomOptions>();
 
-function isBrowser(): boolean {
-  return typeof window !== 'undefined';
-}
-
-function isOnline(): boolean {
-  return isBrowser() ? window.navigator.onLine : true;
-}
-
-function getLocalChannelName(roomId: string): string {
-  return `agnos_realtime_${roomId}`;
-}
-
-// ============================================================================
-// 3. RealtimeRoomSession (Channel Manager & Fallback Engine)
-// ============================================================================
-
-class RealtimeRoomSession {
-  public readonly roomId: string;
-  private supabaseChannel: RealtimeChannel | null = null;
-  private broadcastChannel: BroadcastChannel | null = null;
-  private connectionStatus: RealtimeConnectionStatus = 'CONNECTING';
-
-  // Subscriptions & callbacks
-  private listeners: Set<SubscribeRoomOptions> = new Set();
-  private recentMessageIds: Set<string> = new Set();
-  private maxHistory = 100;
-
-  // Reconnection state
-  private reconnectAttempts = 0;
-  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
-  private isDestroyed = false;
-
-  // Latest presence cache
-  private latestPresence: PatientPresencePayload | null = null;
-  private clientKey: string;
-
-  constructor(roomId: string) {
-    this.roomId = roomId;
-    this.clientKey = generateId('client');
-    this.initBroadcastChannel();
+  constructor() {
+    this.initLocalBroadcast();
     this.initNetworkListeners();
-    this.connectSupabase();
+    this.connect();
   }
 
-  // --- BroadcastChannel Fallback & Local Cross-Tab Sync ---
-  private initBroadcastChannel(): void {
-    if (!isBrowser() || typeof window.BroadcastChannel === 'undefined') return;
+  private isBrowser(): boolean {
+    return typeof window !== 'undefined';
+  }
 
+  private initLocalBroadcast(): void {
+    if (!this.isBrowser() || typeof BroadcastChannel === 'undefined') return;
     try {
-      this.broadcastChannel = new BroadcastChannel(getLocalChannelName(this.roomId));
-      this.broadcastChannel.onmessage = (event: MessageEvent<LocalChannelMessage>) => {
-        this.handleLocalMessage(event.data);
+      this.localBroadcast = new BroadcastChannel(`agnos_${DEFAULT_ROOM_ID}`);
+      this.localBroadcast.onmessage = (event: MessageEvent<LocalMessage>) => {
+        const msg = event.data;
+        if (!msg) return;
+        if (msg.type === REALTIME_EVENTS.FORM_UPDATE) {
+          this.emitFormUpdate(msg.payload);
+        } else if (msg.type === REALTIME_EVENTS.FORM_SUBMIT) {
+          this.emitFormSubmit(msg.payload);
+        } else if (msg.type === 'presence') {
+          this.currentPresence = msg.payload;
+          this.emitPresence(msg.payload, { local: [msg.payload] });
+        }
       };
-    } catch (err) {
-      console.warn('[Realtime] BroadcastChannel init failed:', err);
+    } catch (e) {
+      console.warn('[Realtime] BroadcastChannel init error:', e);
     }
   }
 
   private initNetworkListeners(): void {
-    if (!isBrowser()) return;
+    if (!this.isBrowser()) return;
 
-    window.addEventListener('online', this.handleOnline);
-    window.addEventListener('offline', this.handleOffline);
+    window.addEventListener('online', () => {
+      console.info('[Realtime] Back online, reconnecting to Supabase...');
+      this.connect();
+    });
+
+    window.addEventListener('offline', () => {
+      console.warn('[Realtime] Offline mode, using local BroadcastChannel.');
+      this.setStatus('FALLBACK_LOCAL');
+      const offlinePayload: PatientPresencePayload = {
+        status: 'offline',
+        room: DEFAULT_ROOM_ID,
+        timestamp: Date.now(),
+      };
+      this.currentPresence = offlinePayload;
+      this.emitPresence(offlinePayload, {});
+    });
   }
 
-  private handleOnline = (): void => {
-    if (this.isDestroyed) return;
-    console.info('[Realtime] Browser back online. Resubscribing channel...');
-    this.reconnectAttempts = 0;
-    this.connectSupabase();
-  };
-
-  private handleOffline = (): void => {
-    if (this.isDestroyed) return;
-    console.warn('[Realtime] Browser offline. Switching to local fallback.');
-    this.updateStatus('FALLBACK_LOCAL');
-  };
-
-  // --- Supabase Realtime Channel Connection & Resilience ---
-  private connectSupabase(): void {
-    if (this.isDestroyed) return;
-
-    if (!isOnline() || !isSupabaseConfigured) {
-      this.updateStatus('FALLBACK_LOCAL');
+  public connect(): void {
+    if (!isSupabaseConfigured || (this.isBrowser() && !navigator.onLine)) {
+      this.setStatus('FALLBACK_LOCAL');
       return;
     }
 
-    this.updateStatus('CONNECTING');
+    this.setStatus('CONNECTING');
 
-    try {
-      // Teardown existing channel if any
-      if (this.supabaseChannel) {
-        supabase.removeChannel(this.supabaseChannel).catch(() => {});
-        this.supabaseChannel = null;
-      }
-
-      this.supabaseChannel = supabase.channel(this.roomId, {
-        config: {
-          broadcast: { self: false, ack: false },
-          presence: { key: this.clientKey },
-        },
-      });
-
-      // 1. Listen for Broadcast Events
-      this.supabaseChannel
-        .on('broadcast', { event: REALTIME_EVENTS.FORM_UPDATE }, (payload) => {
-          this.handleIncomingFormUpdate(payload.payload as FormUpdatePayload);
-        })
-        .on('broadcast', { event: REALTIME_EVENTS.FORM_SUBMIT }, (payload) => {
-          this.handleIncomingFormSubmit(payload.payload as FormSubmitPayload);
-        })
-        .on('broadcast', { event: REALTIME_EVENTS.FORM_RESET }, (payload) => {
-          this.handleIncomingFormReset(payload.payload as FormResetPayload);
-        });
-
-      // 2. Listen for Presence Updates
-      this.supabaseChannel
-        .on('presence', { event: 'sync' }, () => {
-          this.handlePresenceSync();
-        })
-        .on('presence', { event: 'join' }, () => {
-          this.handlePresenceSync();
-        })
-        .on('presence', { event: 'leave' }, () => {
-          this.handlePresenceSync();
-        });
-
-      // 3. Subscribe with Status Tracking & Auto-reconnection
-      this.supabaseChannel.subscribe((status, err) => {
-        if (this.isDestroyed) return;
-
-        if (status === 'SUBSCRIBED') {
-          this.reconnectAttempts = 0;
-          this.updateStatus('CONNECTED');
-        } else if (status === 'CLOSED') {
-          this.updateStatus('DISCONNECTED');
-        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          console.warn(`[Realtime] Channel ${status}:`, err);
-          this.updateStatus(this.broadcastChannel ? 'FALLBACK_LOCAL' : 'ERROR');
-          this.scheduleReconnect();
-        }
-      });
-    } catch (err) {
-      console.error('[Realtime] Unexpected connection error:', err);
-      this.updateStatus(this.broadcastChannel ? 'FALLBACK_LOCAL' : 'ERROR');
-      this.scheduleReconnect();
-    }
-  }
-
-  private scheduleReconnect(): void {
-    if (this.isDestroyed || this.reconnectTimer) return;
-
-    this.reconnectAttempts += 1;
-    // Exponential backoff capped at 10 seconds
-    const delay = Math.min(Math.pow(2, this.reconnectAttempts) * 500, 10000);
-
-    this.reconnectTimer = setTimeout(() => {
-      this.reconnectTimer = null;
-      if (!this.isDestroyed && isOnline()) {
-        console.info(`[Realtime] Retrying connection (attempt #${this.reconnectAttempts})...`);
-        this.connectSupabase();
-      }
-    }, delay);
-  }
-
-  // --- Message Deduplication & Dispatching ---
-  private shouldProcessMessage(id: string): boolean {
-    if (!id || this.recentMessageIds.has(id)) {
-      return false;
-    }
-    this.recentMessageIds.add(id);
-
-    // Keep cache bounded
-    if (this.recentMessageIds.size > this.maxHistory) {
-      const oldest = this.recentMessageIds.values().next().value;
-      if (oldest) this.recentMessageIds.delete(oldest);
-    }
-    return true;
-  }
-
-  private handleIncomingFormUpdate(payload: FormUpdatePayload): void {
-    if (!payload || !this.shouldProcessMessage(payload.id)) return;
-    this.listeners.forEach((listener) => {
-      try {
-        listener.onFormUpdate?.(payload);
-      } catch (e) {
-        console.error('[Realtime] Listener onFormUpdate error:', e);
-      }
-    });
-  }
-
-  private handleIncomingFormSubmit(payload: FormSubmitPayload): void {
-    if (!payload || !this.shouldProcessMessage(payload.id)) return;
-    this.listeners.forEach((listener) => {
-      try {
-        listener.onFormSubmit?.(payload);
-      } catch (e) {
-        console.error('[Realtime] Listener onFormSubmit error:', e);
-      }
-    });
-  }
-
-  private handleIncomingFormReset(payload: FormResetPayload): void {
-    if (!payload || !this.shouldProcessMessage(payload.id)) return;
-    this.listeners.forEach((listener) => {
-      try {
-        listener.onFormReset?.(payload);
-      } catch (e) {
-        console.error('[Realtime] Listener onFormReset error:', e);
-      }
-    });
-  }
-
-  private handlePresenceSync(): void {
-    if (!this.supabaseChannel) return;
-
-    const state = this.supabaseChannel.presenceState<PatientPresencePayload>();
-    let latest: PatientPresencePayload | null = null;
-
-    // Find the newest patient presence payload across all presences
-    Object.values(state).forEach((presences) => {
-      presences.forEach((p) => {
-        if (!latest || (p.updatedAt && p.updatedAt > (latest.updatedAt || 0))) {
-          latest = p;
-        }
-      });
-    });
-
-    if (latest) {
-      this.latestPresence = latest;
+    if (this.channel) {
+      supabase.removeChannel(this.channel).catch(() => {});
     }
 
-    this.listeners.forEach((listener) => {
-      try {
-        listener.onPresenceChange?.(this.latestPresence, state);
-      } catch (e) {
-        console.error('[Realtime] Listener onPresenceChange error:', e);
+    this.channel = supabase.channel(DEFAULT_ROOM_ID, {
+      config: {
+        broadcast: { self: false, ack: false },
+        presence: { key: `patient_${Date.now()}` },
+      },
+    });
+
+    this.channel
+      .on('broadcast', { event: REALTIME_EVENTS.FORM_UPDATE }, (p) =>
+        this.emitFormUpdate(p.payload as FormUpdatePayload)
+      )
+      .on('broadcast', { event: REALTIME_EVENTS.FORM_SUBMIT }, (p) =>
+        this.emitFormSubmit(p.payload as FormSubmitPayload)
+      )
+      .on('presence', { event: 'sync' }, () => this.syncPresence())
+      .on('presence', { event: 'leave' }, () => this.syncPresence());
+
+    this.channel.subscribe((subStatus) => {
+      if (subStatus === 'SUBSCRIBED') {
+        this.setStatus('CONNECTED');
+      } else if (subStatus === 'CLOSED') {
+        this.setStatus('DISCONNECTED');
+      } else if (subStatus === 'CHANNEL_ERROR' || subStatus === 'TIMED_OUT') {
+        this.setStatus(this.localBroadcast ? 'FALLBACK_LOCAL' : 'DISCONNECTED');
       }
     });
   }
 
-  private handleLocalMessage(msg: LocalChannelMessage): void {
-    if (!msg || !msg.type) return;
+  private syncPresence(): void {
+    if (!this.channel) return;
+    const state = this.channel.presenceState<PatientPresencePayload>();
+    const allPresences: PatientPresencePayload[] = Object.values(state).flat();
 
-    switch (msg.type) {
-      case REALTIME_EVENTS.FORM_UPDATE:
-        this.handleIncomingFormUpdate(msg.payload);
-        break;
-      case REALTIME_EVENTS.FORM_SUBMIT:
-        this.handleIncomingFormSubmit(msg.payload);
-        break;
-      case REALTIME_EVENTS.FORM_RESET:
-        this.handleIncomingFormReset(msg.payload);
-        break;
-      case 'presence-update':
-        this.latestPresence = msg.payload;
-        this.listeners.forEach((listener) => {
-          try {
-            listener.onPresenceChange?.(this.latestPresence, {
-              [this.clientKey]: [msg.payload],
-            });
-          } catch (e) {
-            console.error('[Realtime] Local presence listener error:', e);
-          }
-        });
-        break;
+    if (allPresences.length === 0) {
+      this.currentPresence = null;
+      this.emitPresence(null, state);
+      return;
     }
+
+    // Pick the most recent active presence
+    const latest = allPresences.reduce((prev, curr) =>
+      curr.timestamp > prev.timestamp ? curr : prev
+    );
+
+    this.currentPresence = latest;
+    this.emitPresence(latest, state);
   }
 
-  private updateStatus(newStatus: RealtimeConnectionStatus): void {
-    if (this.connectionStatus === newStatus) return;
-    this.connectionStatus = newStatus;
-    this.listeners.forEach((listener) => {
-      try {
-        listener.onStatusChange?.(newStatus);
-      } catch (e) {
-        console.error('[Realtime] Listener onStatusChange error:', e);
-      }
-    });
+  private setStatus(status: RealtimeConnectionStatus): void {
+    if (this.status === status) return;
+    this.status = status;
+    this.listeners.forEach((l) => l.onStatusChange?.(status));
   }
 
-  // --- Public Operations ---
+  private emitFormUpdate(payload: FormUpdatePayload): void {
+    this.listeners.forEach((l) => l.onFormUpdate?.(payload));
+  }
+
+  private emitFormSubmit(payload: FormSubmitPayload): void {
+    this.listeners.forEach((l) => l.onFormSubmit?.(payload));
+  }
+
+  private emitPresence(
+    presence: PatientPresencePayload | null,
+    all: Record<string, PatientPresencePayload[]>
+  ): void {
+    this.listeners.forEach((l) => l.onPresenceChange?.(presence, all));
+  }
 
   public getStatus(): RealtimeConnectionStatus {
-    return this.connectionStatus;
+    return this.status;
   }
 
   public subscribe(options: SubscribeRoomOptions): () => void {
     this.listeners.add(options);
-
-    // Immediately trigger current connection status to the new subscriber
-    if (options.onStatusChange) {
-      options.onStatusChange(this.connectionStatus);
+    options.onStatusChange?.(this.status);
+    if (this.currentPresence) {
+      options.onPresenceChange?.(this.currentPresence, {});
     }
 
-    // Immediately emit current presence if available
-    if (options.onPresenceChange && this.latestPresence) {
-      options.onPresenceChange(this.latestPresence, {});
-    }
-
-    // Return cleanup unsubscribe function
     return () => {
       this.listeners.delete(options);
     };
@@ -461,316 +235,188 @@ class RealtimeRoomSession {
     return this.listeners.size > 0;
   }
 
-  /**
-   * Broadcasts form changes via Supabase Realtime AND Browser BroadcastChannel
-   */
-  public async broadcastFormUpdate(
+  public async broadcastUpdate(
     formData: PartialPatientFormData,
-    options?: BroadcastUpdateOptions
+    lastFieldChanged?: string,
+    currentStep?: PatientFormStep,
+    patientId?: string
   ): Promise<boolean> {
     const payload: FormUpdatePayload = {
-      id: generateId('upd'),
       formData,
-      lastFieldChanged: options?.lastFieldChanged,
-      currentStep: options?.currentStep,
+      lastFieldChanged,
+      currentStep,
       timestamp: Date.now(),
-      patientId: options?.patientId,
+      patientId,
     };
 
-    // 1. Send via local BroadcastChannel (instant zero-latency cross-tab sync)
-    if (this.broadcastChannel) {
-      try {
-        this.broadcastChannel.postMessage({
-          type: REALTIME_EVENTS.FORM_UPDATE,
-          payload,
-        });
-      } catch (e) {
-        console.warn('[Realtime] BroadcastChannel postMessage failed:', e);
-      }
-    }
+    // Cross-tab fallback
+    this.localBroadcast?.postMessage({
+      type: REALTIME_EVENTS.FORM_UPDATE,
+      payload,
+    });
 
-    // 2. Send via Supabase Realtime channel if connected
-    if (this.supabaseChannel && this.connectionStatus === 'CONNECTED') {
-      try {
-        const resp = await this.supabaseChannel.send({
-          type: 'broadcast',
-          event: REALTIME_EVENTS.FORM_UPDATE,
-          payload,
-        });
-        return resp === 'ok';
-      } catch (e) {
-        console.warn('[Realtime] Supabase broadcast failed, fell back to local:', e);
-      }
+    // Supabase primary
+    if (this.channel && this.status === 'CONNECTED') {
+      const resp = await this.channel.send({
+        type: 'broadcast',
+        event: REALTIME_EVENTS.FORM_UPDATE,
+        payload,
+      });
+      return resp === 'ok';
     }
 
     return true;
   }
 
-  /**
-   * Broadcasts final submission
-   */
-  public async broadcastFormSubmit(
+  public async broadcastSubmit(
     formData: PatientFormData,
-    options?: BroadcastSubmitOptions
+    submittedAt?: string,
+    patientId?: string
   ): Promise<boolean> {
     const payload: FormSubmitPayload = {
-      id: generateId('sub'),
       formData,
-      submittedAt: options?.submittedAt || new Date().toISOString(),
-      patientId: options?.patientId,
+      submittedAt: submittedAt || new Date().toISOString(),
+      patientId,
     };
 
-    if (this.broadcastChannel) {
-      try {
-        this.broadcastChannel.postMessage({
-          type: REALTIME_EVENTS.FORM_SUBMIT,
-          payload,
-        });
-      } catch (e) {
-        console.warn('[Realtime] BroadcastChannel postMessage failed:', e);
-      }
-    }
+    this.localBroadcast?.postMessage({
+      type: REALTIME_EVENTS.FORM_SUBMIT,
+      payload,
+    });
 
-    if (this.supabaseChannel && this.connectionStatus === 'CONNECTED') {
-      try {
-        const resp = await this.supabaseChannel.send({
-          type: 'broadcast',
-          event: REALTIME_EVENTS.FORM_SUBMIT,
-          payload,
-        });
-        return resp === 'ok';
-      } catch (e) {
-        console.warn('[Realtime] Supabase submit broadcast failed:', e);
-      }
+    if (this.channel && this.status === 'CONNECTED') {
+      const resp = await this.channel.send({
+        type: 'broadcast',
+        event: REALTIME_EVENTS.FORM_SUBMIT,
+        payload,
+      });
+      return resp === 'ok';
     }
 
     return true;
   }
 
-  /**
-   * Broadcasts form reset
-   */
-  public async broadcastFormReset(options?: {
-    patientId?: string;
-  }): Promise<boolean> {
-    const payload: FormResetPayload = {
-      id: generateId('rst'),
-      timestamp: Date.now(),
-      patientId: options?.patientId,
-    };
-
-    if (this.broadcastChannel) {
-      try {
-        this.broadcastChannel.postMessage({
-          type: REALTIME_EVENTS.FORM_RESET,
-          payload,
-        });
-      } catch (e) {
-        console.warn('[Realtime] BroadcastChannel postMessage failed:', e);
-      }
-    }
-
-    if (this.supabaseChannel && this.connectionStatus === 'CONNECTED') {
-      try {
-        const resp = await this.supabaseChannel.send({
-          type: 'broadcast',
-          event: REALTIME_EVENTS.FORM_RESET,
-          payload,
-        });
-        return resp === 'ok';
-      } catch (e) {
-        console.warn('[Realtime] Supabase reset broadcast failed:', e);
-      }
-    }
-
-    return true;
-  }
-
-  /**
-   * Tracks patient presence status
-   */
   public async trackPresence(
     status: PatientPresenceStatus,
-    options?: TrackPresenceOptions
+    patientId?: string,
+    currentStep?: PatientFormStep,
+    metadata?: Record<string, unknown>
   ): Promise<boolean> {
     const payload: PatientPresencePayload = {
       status,
-      patientId: options?.patientId,
-      currentStep: options?.currentStep,
-      lastActiveAt: Date.now(),
-      updatedAt: Date.now(),
-      metadata: options?.metadata,
+      room: DEFAULT_ROOM_ID,
+      timestamp: Date.now(),
+      patientId,
+      currentStep,
+      metadata,
     };
 
-    this.latestPresence = payload;
+    this.currentPresence = payload;
 
-    // 1. Broadcast locally
-    if (this.broadcastChannel) {
-      try {
-        this.broadcastChannel.postMessage({
-          type: 'presence-update',
-          payload,
-        });
-      } catch (e) {
-        console.warn('[Realtime] Local presence post failed:', e);
-      }
-    }
+    this.localBroadcast?.postMessage({
+      type: 'presence',
+      payload,
+    });
 
-    // 2. Track on Supabase
-    if (this.supabaseChannel && this.connectionStatus === 'CONNECTED') {
-      try {
-        await this.supabaseChannel.track(payload);
-        return true;
-      } catch (e) {
-        console.warn('[Realtime] Supabase trackPresence failed:', e);
-      }
+    if (this.channel && this.status === 'CONNECTED') {
+      await this.channel.track(payload);
     }
 
     return true;
   }
 
-  /**
-   * Cleanly closes and releases all channel resources
-   */
   public async destroy(): Promise<void> {
-    this.isDestroyed = true;
-
-    if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer);
-      this.reconnectTimer = null;
+    if (this.localBroadcast) {
+      this.localBroadcast.close();
+      this.localBroadcast = null;
     }
 
-    if (isBrowser()) {
-      window.removeEventListener('online', this.handleOnline);
-      window.removeEventListener('offline', this.handleOffline);
-    }
-
-    if (this.broadcastChannel) {
-      try {
-        this.broadcastChannel.close();
-      } catch {}
-      this.broadcastChannel = null;
-    }
-
-    if (this.supabaseChannel) {
-      try {
-        await supabase.removeChannel(this.supabaseChannel);
-      } catch {}
-      this.supabaseChannel = null;
+    if (this.channel) {
+      await supabase.removeChannel(this.channel);
+      this.channel = null;
     }
 
     this.listeners.clear();
-    this.recentMessageIds.clear();
-    this.updateStatus('DISCONNECTED');
+    this.setStatus('DISCONNECTED');
   }
 }
 
 // ============================================================================
-// 4. Room Session Registry (Pool)
+// 3. Singleton Instance & Public API
 // ============================================================================
 
-const roomSessions = new Map<string, RealtimeRoomSession>();
+let roomManager: PatientRoomManager | null = null;
 
-export function getOrCreateRoomSession(
-  roomId: string = DEFAULT_ROOM_ID
-): RealtimeRoomSession {
-  let session = roomSessions.get(roomId);
-  if (!session) {
-    session = new RealtimeRoomSession(roomId);
-    roomSessions.set(roomId, session);
+function getRoomManager(): PatientRoomManager {
+  if (!roomManager) {
+    roomManager = new PatientRoomManager();
   }
-  return session;
+  return roomManager;
 }
 
-// ============================================================================
-// 5. Public Helper Functions (Ready for React Hooks in #14 & #15)
-// ============================================================================
-
-/**
- * Subscribes to real-time events and presence on a patient room.
- * Returns an unsubscribe callback for easy cleanup in useEffect.
- */
 export function subscribeToPatientRoom(options: SubscribeRoomOptions): () => void {
-  const roomId = options.roomId || DEFAULT_ROOM_ID;
-  const session = getOrCreateRoomSession(roomId);
-  const unsubscribeSession = session.subscribe(options);
+  const manager = getRoomManager();
+  const unsubscribe = manager.subscribe(options);
 
   return () => {
-    unsubscribeSession();
-    // If no listeners remain across the application, tear down the room session
-    if (!session.hasListeners()) {
-      destroyRealtimeRoom(roomId).catch(() => {});
+    unsubscribe();
+    if (!manager.hasListeners()) {
+      destroyPatientRoom().catch(() => {});
     }
   };
 }
 
-/**
- * Broadcasts form updates as the patient types or changes fields.
- */
 export function broadcastFormUpdate(
   formData: PartialPatientFormData,
-  options?: BroadcastUpdateOptions
+  options?: {
+    lastFieldChanged?: string;
+    currentStep?: PatientFormStep;
+    patientId?: string;
+  }
 ): Promise<boolean> {
-  const roomId = options?.roomId || DEFAULT_ROOM_ID;
-  const session = getOrCreateRoomSession(roomId);
-  return session.broadcastFormUpdate(formData, options);
+  return getRoomManager().broadcastUpdate(
+    formData,
+    options?.lastFieldChanged,
+    options?.currentStep,
+    options?.patientId
+  );
 }
 
-/**
- * Broadcasts final form submission to the staff view.
- */
 export function broadcastFormSubmit(
   formData: PatientFormData,
-  options?: BroadcastSubmitOptions
+  options?: { submittedAt?: string; patientId?: string }
 ): Promise<boolean> {
-  const roomId = options?.roomId || DEFAULT_ROOM_ID;
-  const session = getOrCreateRoomSession(roomId);
-  return session.broadcastFormSubmit(formData, options);
+  return getRoomManager().broadcastSubmit(
+    formData,
+    options?.submittedAt,
+    options?.patientId
+  );
 }
 
-/**
- * Broadcasts form reset.
- */
-export function broadcastFormReset(options?: {
-  patientId?: string;
-  roomId?: string;
-}): Promise<boolean> {
-  const roomId = options?.roomId || DEFAULT_ROOM_ID;
-  const session = getOrCreateRoomSession(roomId);
-  return session.broadcastFormReset(options);
-}
-
-/**
- * Updates presence tracking state ('typing' | 'idle' | 'submitted' | 'offline').
- */
 export function trackPatientPresence(
   status: PatientPresenceStatus,
-  options?: TrackPresenceOptions
+  options?: {
+    patientId?: string;
+    currentStep?: PatientFormStep;
+    metadata?: Record<string, unknown>;
+  }
 ): Promise<boolean> {
-  const roomId = options?.roomId || DEFAULT_ROOM_ID;
-  const session = getOrCreateRoomSession(roomId);
-  return session.trackPresence(status, options);
+  return getRoomManager().trackPresence(
+    status,
+    options?.patientId,
+    options?.currentStep,
+    options?.metadata
+  );
 }
 
-/**
- * Retrieves the current connection status of a patient room.
- */
-export function getRealtimeConnectionStatus(
-  roomId: string = DEFAULT_ROOM_ID
-): RealtimeConnectionStatus {
-  const session = roomSessions.get(roomId);
-  return session ? session.getStatus() : 'DISCONNECTED';
+export function getRealtimeConnectionStatus(): RealtimeConnectionStatus {
+  return roomManager ? roomManager.getStatus() : 'DISCONNECTED';
 }
 
-/**
- * Explicitly terminates a room session and disconnects channels.
- */
-export async function destroyRealtimeRoom(
-  roomId: string = DEFAULT_ROOM_ID
-): Promise<void> {
-  const session = roomSessions.get(roomId);
-  if (session) {
-    roomSessions.delete(roomId);
-    await session.destroy();
+export async function destroyPatientRoom(): Promise<void> {
+  if (roomManager) {
+    const manager = roomManager;
+    roomManager = null;
+    await manager.destroy();
   }
 }

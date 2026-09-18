@@ -1,7 +1,7 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const rawSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const rawSupabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const rawSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const rawSupabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
 /**
  * Checks whether valid Supabase environment variables are supplied.
@@ -13,14 +13,9 @@ export const isSupabaseConfigured: boolean = Boolean(
     rawSupabaseAnonKey !== 'your-anon-key'
 );
 
-// Fallback dummy credentials to prevent build crashes or SSR exceptions if env is missing
-const resolvedUrl = isSupabaseConfigured && rawSupabaseUrl
-  ? rawSupabaseUrl
-  : 'https://ceijfadsyboalzzcykiy.supabase.co';
-
-const resolvedAnonKey = isSupabaseConfigured && rawSupabaseAnonKey
-  ? rawSupabaseAnonKey
-  : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.placeholder';
+// Fallback dummy credentials during build or testing if env is not configured
+const resolvedUrl = isSupabaseConfigured ? rawSupabaseUrl : 'https://placeholder.supabase.co';
+const resolvedAnonKey = isSupabaseConfigured ? rawSupabaseAnonKey : 'placeholder-anon-key';
 
 /**
  * Resilient Supabase Client instance optimized for Realtime Broadcast and Presence.

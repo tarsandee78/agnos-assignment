@@ -47,6 +47,23 @@ export default function PatientPage() {
     }
   }, [isLoaded, reset]);
 
+  // Stepper navigation with validation guard
+  const handleStepClick = async (targetStep: PatientFormStep) => {
+    if (targetStep === currentStep) return;
+    // Allow stepping back to previous completed steps freely
+    if (targetStep < currentStep) {
+      setCurrentStep(targetStep);
+      return;
+    }
+    // Advancing forward requires current step validation
+    if (currentStep === 1) {
+      const isValid = await form.trigger("personal");
+      if (isValid) {
+        setCurrentStep(targetStep);
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       {/* Top Brand & Status Navigation */}
@@ -89,7 +106,7 @@ export default function PatientPage() {
       <div className="max-w-4xl w-full mx-auto px-2 sm:px-4 pt-4">
         <PatientStepper
           currentStep={currentStep}
-          onStepClick={(step) => setCurrentStep(step)}
+          onStepClick={handleStepClick}
         />
       </div>
 
@@ -116,20 +133,14 @@ export default function PatientPage() {
               <p className="text-muted-foreground text-sm">
                 Phone Number, Email, and Residential Address will be implemented in Step 2.
               </p>
-              <div className="pt-4 flex justify-between items-center">
+              <div className="pt-4 flex justify-start items-center">
                 <Button
                   variant="outline"
                   onClick={() => setCurrentStep(1)}
-                  className="min-h-[44px] h-11 px-5"
+                  className="min-h-[44px] h-11 px-5 touch-target"
                 >
                   <ArrowLeft className="size-4 mr-2" />
                   Back to Personal Details
-                </Button>
-                <Button
-                  onClick={() => setCurrentStep(3)}
-                  className="min-h-[44px] h-11 px-5"
-                >
-                  Skip to Step 3 Preview
                 </Button>
               </div>
             </CardContent>

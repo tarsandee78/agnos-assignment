@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { HeartPulse, UserCheck, ShieldCheck, ArrowRight, Activity } from "lucide-react";
+import { HeartPulse, UserCheck, ShieldCheck, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 
@@ -25,12 +25,12 @@ export default function Home() {
 
           <div className="flex items-center gap-3">
             <Link href="/patient">
-              <Button size="sm" variant="outline" className="min-h-[36px]">
+              <Button variant="outline" className="min-h-[44px] h-11 px-4 touch-target font-medium">
                 Patient View
               </Button>
             </Link>
             <Link href="/staff">
-              <Button size="sm" className="min-h-[36px]">
+              <Button className="min-h-[44px] h-11 px-4 touch-target font-medium">
                 Staff View
               </Button>
             </Link>
@@ -40,10 +40,6 @@ export default function Home() {
 
       {/* Hero Section */}
       <main className="flex-1 max-w-5xl mx-auto px-4 py-12 sm:py-16 flex flex-col items-center text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-6 border border-primary/20">
-          <Activity className="size-3.5 animate-pulse" />
-          <span>Next.js 16 • React 19 • Tailwind CSS v4 • Supabase Realtime</span>
-        </div>
 
         <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight max-w-2xl leading-tight">
           Real-Time Patient Intake & Staff Monitoring

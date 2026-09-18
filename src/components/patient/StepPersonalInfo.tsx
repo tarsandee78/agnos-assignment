@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Controller, type FieldPath, type UseFormReturn } from "react-hook-form";
+import { Controller, type UseFormReturn } from "react-hook-form";
 import { AlertCircle, ArrowRight, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -39,16 +39,6 @@ export interface StepPersonalInfoProps {
   className?: string;
 }
 
-const STEP_1_FIELDS: FieldPath<PatientFormData>[] = [
-  "personal.firstName",
-  "personal.middleName",
-  "personal.lastName",
-  "personal.dateOfBirth",
-  "personal.gender",
-  "personal.preferredLanguage",
-  "personal.nationality",
-  "personal.religion",
-];
 
 const GENDER_DESCRIPTIONS: Record<string, string> = {
   male: "ชาย",
@@ -137,7 +127,7 @@ export function StepPersonalInfo({
   }, []);
 
   const handleNext = async () => {
-    const isValid = await trigger(STEP_1_FIELDS);
+    const isValid = await trigger("personal");
     if (isValid) {
       onNext();
     }

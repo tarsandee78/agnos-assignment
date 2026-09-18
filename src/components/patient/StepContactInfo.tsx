@@ -13,6 +13,7 @@ import {
 import { cn } from "@/lib/utils";
 import {
   formatPhoneNumber,
+  handlePhoneBackspaceKeyDown,
   type PatientFormData,
 } from "@/lib/schemas";
 import { Input } from "@/components/ui/input";
@@ -153,32 +154,7 @@ export function StepContactInfo({
                       field.onChange(formatted);
                     }}
                     onBlur={field.onBlur}
-                    onKeyDown={(e) => {
-                      // Smooth backspace handling across hyphen delimiters
-                      if (e.key === "Backspace") {
-                        const input = e.currentTarget;
-                        const { selectionStart, selectionEnd, value } = input;
-                        if (
-                          selectionStart === selectionEnd &&
-                          selectionStart !== null &&
-                          selectionStart > 1
-                        ) {
-                          const charBeforeCursor = value[selectionStart - 1];
-                          if (charBeforeCursor === "-") {
-                            e.preventDefault();
-                            const before = value.slice(0, selectionStart - 2);
-                            const after = value.slice(selectionStart);
-                            const nextRaw = before + after;
-                            const formatted = formatPhoneNumber(nextRaw);
-                            field.onChange(formatted);
-                            requestAnimationFrame(() => {
-                              const newCursorPos = Math.max(0, selectionStart - 2);
-                              input.setSelectionRange(newCursorPos, newCursorPos);
-                            });
-                          }
-                        }
-                      }
-                    }}
+                    onKeyDown={(e) => handlePhoneBackspaceKeyDown(e, field.onChange)}
                     aria-invalid={Boolean(contactErrors?.phoneNumber)}
                     aria-describedby={
                       contactErrors?.phoneNumber

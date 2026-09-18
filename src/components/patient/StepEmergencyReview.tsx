@@ -18,6 +18,8 @@ import {
 import { cn } from "@/lib/utils";
 import {
   formatPhoneNumber,
+  handlePhoneBackspaceKeyDown,
+  getPatientFullName,
   type PatientFormData,
   type PatientFormStep,
 } from "@/lib/schemas";
@@ -93,19 +95,6 @@ function FieldError({ error, id }: FieldErrorProps) {
   );
 }
 
-function calculateAge(dobString?: string): number | null {
-  if (!dobString) return null;
-  const birth = new Date(dobString);
-  if (isNaN(birth.getTime())) return null;
-  const today = new Date();
-  let age = today.getFullYear() - birth.getFullYear();
-  const m = today.getMonth() - birth.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
-    age--;
-  }
-  return age >= 0 ? age : null;
-}
-
 /**
  * StepEmergencyReview Component
  *
@@ -116,7 +105,7 @@ function calculateAge(dobString?: string): number | null {
  * 2. Pre-Submission Review Summary Cards mirroring all data from Steps 1, 2, and 3.
  * 3. Quick "Edit" action buttons per section jumping back to Step 1 or Step 2.
  * 4. Submission button with loading spinner & double-click prevention.
- * 5. Healthcare accessibility: >=44px touch targets, 16px input font, WCAG AA compliance.
+ * 5. Healthcare accessibility: >=44px touch targets across all interactive controls.
  */
 export function StepEmergencyReview({
   form,
@@ -141,18 +130,7 @@ export function StepEmergencyReview({
   const contact = formData.contact;
   const emergency = formData.emergency;
 
-  const calculatedAge = React.useMemo(
-    () => calculateAge(personal?.dateOfBirth),
-    [personal?.dateOfBirth]
-  );
-
-  const fullName = [
-    personal?.firstName,
-    personal?.middleName,
-    personal?.lastName,
-  ]
-    .filter(Boolean)
-    .join(" ");
+  const fullName = getPatientFullName(personal);
 
   return (
     <div className={cn("w-full space-y-6", className)}>
@@ -230,32 +208,7 @@ export function StepEmergencyReview({
                       field.onChange(formatted);
                     }}
                     onBlur={field.onBlur}
-                    onKeyDown={(e) => {
-                      // Smooth backspace handling across hyphen delimiters
-                      if (e.key === "Backspace") {
-                        const input = e.currentTarget;
-                        const { selectionStart, selectionEnd, value } = input;
-                        if (
-                          selectionStart === selectionEnd &&
-                          selectionStart !== null &&
-                          selectionStart > 1
-                        ) {
-                          const charBeforeCursor = value[selectionStart - 1];
-                          if (charBeforeCursor === "-") {
-                            e.preventDefault();
-                            const before = value.slice(0, selectionStart - 2);
-                            const after = value.slice(selectionStart);
-                            const nextRaw = before + after;
-                            const formatted = formatPhoneNumber(nextRaw);
-                            field.onChange(formatted);
-                            requestAnimationFrame(() => {
-                              const newCursorPos = Math.max(0, selectionStart - 2);
-                              input.setSelectionRange(newCursorPos, newCursorPos);
-                            });
-                          }
-                        }
-                      }
-                    }}
+                    onKeyDown={(e) => handlePhoneBackspaceKeyDown(e, field.onChange)}
                     aria-invalid={Boolean(emergencyErrors?.contactPhone)}
                     aria-describedby={
                       emergencyErrors?.contactPhone
@@ -297,15 +250,15 @@ export function StepEmergencyReview({
               {...register("emergency.relationship")}
             />
 
-            {/* Quick Relationship Chips */}
-            <div className="flex flex-wrap items-center gap-1.5 pt-1">
+            {/* Quick Relationship Chips (Compliant >=44px touch targets) */}
+            <div className="flex flex-wrap items-center gap-2 pt-1">
               <span className="text-xs text-muted-foreground mr-1">Quick Select:</span>
               {COMMON_RELATIONSHIPS.map((item) => (
                 <button
                   key={item.value}
                   type="button"
                   onClick={() => form.setValue("emergency.relationship", item.value, { shouldValidate: true })}
-                  className="inline-flex items-center min-h-[32px] px-2.5 py-1 rounded-full text-xs font-medium bg-muted hover:bg-primary/15 hover:text-primary transition-colors cursor-pointer border border-border/60"
+                  className="inline-flex items-center min-h-[44px] px-3.5 py-2 rounded-full text-xs sm:text-sm font-medium bg-muted hover:bg-primary/15 hover:text-primary transition-colors cursor-pointer border border-border/60 touch-target"
                 >
                   {item.label}
                 </button>
@@ -349,10 +302,10 @@ export function StepEmergencyReview({
                 variant="ghost"
                 size="sm"
                 onClick={() => onEditStep(1)}
-                className="h-8 px-2.5 text-xs text-primary font-medium hover:bg-primary/10 touch-target min-h-[36px] cursor-pointer"
+                className="h-11 px-3 text-xs sm:text-sm text-primary font-semibold hover:bg-primary/10 touch-target min-h-[44px] min-w-[44px] cursor-pointer"
                 aria-label="Edit personal details in step 1"
               >
-                <Edit3 className="size-3.5 mr-1" aria-hidden="true" />
+                <Edit3 className="size-4 mr-1.5" aria-hidden="true" />
                 Edit
               </Button>
             </CardHeader>
@@ -367,7 +320,6 @@ export function StepEmergencyReview({
                 <span className="text-muted-foreground font-medium">Date of Birth / ว/ด/ป เกิด:</span>
                 <span className="font-medium text-foreground text-right tabular-nums">
                   {personal?.dateOfBirth || "—"}
-                  {calculatedAge !== null ? ` (${calculatedAge} years)` : ""}
                 </span>
               </div>
               <div className="flex justify-between border-b border-border/40 pb-1.5">
@@ -411,10 +363,10 @@ export function StepEmergencyReview({
                 variant="ghost"
                 size="sm"
                 onClick={() => onEditStep(2)}
-                className="h-8 px-2.5 text-xs text-primary font-medium hover:bg-primary/10 touch-target min-h-[36px] cursor-pointer"
+                className="h-11 px-3 text-xs sm:text-sm text-primary font-semibold hover:bg-primary/10 touch-target min-h-[44px] min-w-[44px] cursor-pointer"
                 aria-label="Edit contact and address in step 2"
               >
-                <Edit3 className="size-3.5 mr-1" aria-hidden="true" />
+                <Edit3 className="size-4 mr-1.5" aria-hidden="true" />
                 Edit
               </Button>
             </CardHeader>

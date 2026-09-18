@@ -312,3 +312,48 @@ export const defaultPatientFormData: PatientFormData = {
   },
 };
 
+/**
+ * Helper to construct readable patient full name.
+ */
+export function getPatientFullName(
+  personal?: Partial<PersonalInfo> | null
+): string {
+  if (!personal) return '';
+  return [personal.firstName, personal.middleName, personal.lastName]
+    .filter(Boolean)
+    .join(' ');
+}
+
+/**
+ * Shared input keydown handler for phone number fields with hyphen formatting.
+ * Enables smooth backspace across hyphen delimiters.
+ */
+export function handlePhoneBackspaceKeyDown(
+  e: React.KeyboardEvent<HTMLInputElement>,
+  onChange: (val: string) => void
+): void {
+  if (e.key === 'Backspace') {
+    const input = e.currentTarget;
+    const { selectionStart, selectionEnd, value } = input;
+    if (
+      selectionStart === selectionEnd &&
+      selectionStart !== null &&
+      selectionStart > 1
+    ) {
+      const charBeforeCursor = value[selectionStart - 1];
+      if (charBeforeCursor === '-') {
+        e.preventDefault();
+        const before = value.slice(0, selectionStart - 2);
+        const after = value.slice(selectionStart);
+        const nextRaw = before + after;
+        const formatted = formatPhoneNumber(nextRaw);
+        onChange(formatted);
+        requestAnimationFrame(() => {
+          const newCursorPos = Math.max(0, selectionStart - 2);
+          input.setSelectionRange(newCursorPos, newCursorPos);
+        });
+      }
+    }
+  }
+}
+

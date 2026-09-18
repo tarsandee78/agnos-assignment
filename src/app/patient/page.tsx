@@ -39,7 +39,7 @@ export default function PatientPage() {
     defaultValues: defaultPatientFormData,
   });
 
-  const { reset, watch, getValues, trigger, formState: { errors } } = form;
+  const { reset, watch, getValues, trigger } = form;
   const watchedFormData = watch();
 
   // Auto-save draft hook
@@ -97,11 +97,12 @@ export default function PatientPage() {
       // Validate all fields across all steps
       const isFormValid = await trigger();
       if (!isFormValid) {
-        if (errors.personal) {
+        const currentErrors = form.formState.errors;
+        if (currentErrors.personal) {
           setSubmissionError("Please review and fix errors in Step 1 (Personal Details)");
-        } else if (errors.contact) {
+        } else if (currentErrors.contact) {
           setSubmissionError("Please review and fix errors in Step 2 (Contact & Address)");
-        } else if (errors.emergency) {
+        } else if (currentErrors.emergency) {
           setSubmissionError("Please review and fix errors in Emergency Contact");
         } else {
           setSubmissionError("Please ensure all required fields are correctly completed");

@@ -11,7 +11,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import type { PatientFormData } from "@/lib/schemas";
+import { getPatientFullName, type PatientFormData } from "@/lib/schemas";
 
 export interface SubmissionSuccessDialogProps {
   open: boolean;
@@ -32,13 +32,7 @@ export function SubmissionSuccessDialog({
 }: SubmissionSuccessDialogProps) {
   if (!data) return null;
 
-  const patientFullName = [
-    data.personal.firstName,
-    data.personal.middleName,
-    data.personal.lastName,
-  ]
-    .filter(Boolean)
-    .join(" ");
+  const patientFullName = getPatientFullName(data.personal);
 
   const formattedDate = React.useMemo(() => {
     try {

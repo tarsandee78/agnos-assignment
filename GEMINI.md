@@ -92,3 +92,11 @@ All agents working on issues in this repository MUST strictly adhere to the foll
    - Present the PR link, implementation summary, review findings, and UI preview to the USER for review.
    - Explicitly ask the USER for confirmation whether they are satisfied with the result.
    - **CRITICAL RULE: DO NOT merge the branch or PR back into `main` automatically.** Wait for the USER's explicit instruction/approval before performing any merge.
+7. **Post-Merge Local Sync & Cleanup:**
+   - Once the USER merges the PR on GitHub (or gives approval):
+   - Switch back to `main`: `git checkout main`
+   - Pull the latest changes from origin: `git pull origin main`
+   - Delete the merged local branch: `git branch -d <branch-name>`
+   - Prune remote tracking references: `git remote prune origin`
+   - Verify the local working tree is clean (`git status`) before picking up the next issue.
+

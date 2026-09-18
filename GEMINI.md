@@ -1,4 +1,4 @@
-﻿# AGNOS CANDIDATE ASSIGNMENT - AGENT CONTEXT & ARCHITECTURE RULES
+# AGNOS CANDIDATE ASSIGNMENT - AGENT CONTEXT & ARCHITECTURE RULES
 
 This file serves as persistent memory and instructions for Antigravity (and other AI agents) working in this workspace.
 
@@ -68,3 +68,24 @@ src/
 4. **Accessibility & Healthcare UX:**
    - Minimum 44x44px touch targets.
    - Mobile-first stepper/wizard layout to reduce cognitive load.
+
+---
+
+## 5. Issue Implementation Workflow & Branching Strategy
+All agents working on issues in this repository MUST strictly adhere to the following workflow:
+
+1. **Branch-per-Issue (Mandatory):**
+   - Before starting implementation on any issue, **always create and switch to a new branch** from `main` (e.g. `feat/issue-<number>-<description>` or `fix/issue-<number>-<description>`).
+   - NEVER commit directly to `main` while working on an issue.
+2. **Implementation & Verification:**
+   - Implement the required changes cleanly according to the Acceptance Criteria.
+   - Run type checks (`npx tsc --noEmit`) and build checks (`npm run build`) to ensure zero errors.
+3. **Two-Axis Code Review (`/code-review`):**
+   - Run the two-axis code review (Standards vs Spec) and resolve any feedback or smells before presenting.
+4. **Frontend Live Preview & Verification:**
+   - If changes affect the Frontend/UI, start the local dev server (`npm run dev`) and open the live preview.
+   - Take screenshots to verify both Desktop and Mobile viewports and validate interaction states.
+5. **Strict User Approval & No Auto-Merge:**
+   - Present the implementation, review findings, and UI preview to the USER for review.
+   - Explicitly ask the USER for confirmation whether they are satisfied with the result.
+   - **CRITICAL RULE: DO NOT merge the branch back into `main` automatically.** Wait for the USER's explicit instruction/approval before performing any merge.

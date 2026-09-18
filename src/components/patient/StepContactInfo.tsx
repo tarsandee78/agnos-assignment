@@ -12,9 +12,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
-  contactInfoSchema,
   formatPhoneNumber,
-  type ContactInfo,
   type PatientFormData,
 } from "@/lib/schemas";
 import { Input } from "@/components/ui/input";
@@ -156,17 +154,17 @@ export function StepContactInfo({
                     }}
                     onBlur={field.onBlur}
                     onKeyDown={(e) => {
-                      // Smooth backspace handling across separators ('-' or ' ')
+                      // Smooth backspace handling across hyphen delimiters
                       if (e.key === "Backspace") {
                         const input = e.currentTarget;
                         const { selectionStart, selectionEnd, value } = input;
                         if (
                           selectionStart === selectionEnd &&
                           selectionStart !== null &&
-                          selectionStart > 0
+                          selectionStart > 1
                         ) {
                           const charBeforeCursor = value[selectionStart - 1];
-                          if (charBeforeCursor === "-" || charBeforeCursor === " ") {
+                          if (charBeforeCursor === "-") {
                             e.preventDefault();
                             const before = value.slice(0, selectionStart - 2);
                             const after = value.slice(selectionStart);

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { CheckCircle2, Sparkles, RefreshCw } from "lucide-react";
+import { CheckCircle2, RefreshCw } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -49,7 +49,7 @@ export function SubmissionSuccessDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="w-full max-w-md p-6 sm:p-7 rounded-2xl border-border shadow-2xl overflow-hidden font-sans"
+        className="w-[calc(100vw-2rem)] max-w-md p-6 sm:p-7 rounded-2xl border-border shadow-2xl overflow-hidden font-sans"
         showCloseButton={false}
       >
         <DialogHeader className="items-center text-center space-y-2.5">

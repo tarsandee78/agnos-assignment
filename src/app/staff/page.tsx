@@ -60,7 +60,7 @@ export default function StaffPage() {
               <NextPatientDialog
                 label="Prepare Next Patient"
                 variant="default"
-                className="bg-emerald-700 hover:bg-emerald-800 text-white dark:bg-emerald-600 dark:hover:bg-emerald-700 shadow-sm min-h-[40px] touch-target"
+                className="bg-emerald-700 hover:bg-emerald-800 text-white dark:bg-emerald-600 dark:hover:bg-emerald-700 shadow-sm min-h-[44px] h-11 touch-target"
               />
             </div>
           </div>

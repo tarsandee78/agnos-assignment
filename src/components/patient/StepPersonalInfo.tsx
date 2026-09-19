@@ -6,6 +6,8 @@ import { AlertCircle, ArrowRight, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   GENDER_OPTIONS,
+  GENDER_DISPLAY_MAP,
+  type Gender,
   PREFERRED_LANGUAGE_OPTIONS,
   COMMON_RELIGION_OPTIONS,
   type PatientFormData,
@@ -29,14 +31,6 @@ export interface StepPersonalInfoProps {
   /** Optional custom CSS classes */
   className?: string;
 }
-
-
-const GENDER_DESCRIPTIONS: Record<string, string> = {
-  male: "ชาย",
-  female: "หญิง",
-  other: "อื่นๆ",
-  prefer_not_to_say: "ไม่ประสงค์ระบุ",
-};
 
 const RELIGION_SELECT_OPTIONS = [
   { value: "none", label: "None / Not specified (ไม่ระบุ)" },
@@ -253,6 +247,7 @@ export function StepPersonalInfo({
               name="personal.gender"
               render={({ field }) => (
                 <Select
+                  items={GENDER_OPTIONS}
                   value={field.value || ""}
                   onValueChange={(val) => {
                     field.onChange(val);
@@ -276,7 +271,7 @@ export function StepPersonalInfo({
                         value={opt.value}
                         className="text-base py-2.5 cursor-pointer"
                       >
-                        {opt.label} ({GENDER_DESCRIPTIONS[opt.value]})
+                        {GENDER_DISPLAY_MAP[opt.value as Gender]}
                       </SelectItem>
                     ))}
                   </SelectContent>

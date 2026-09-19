@@ -59,7 +59,7 @@ function isFieldMatch(target: string | undefined, active: string | null): boolea
  *   highlighting using conditional selection (`isFieldMatch ? lastFieldChangedAt : null`).
  *   Unrelated fields NEVER re-render on keystrokes.
  * - Subtle Pulse & Glow Highlight: Illuminates with an emerald accent glow when this field
- *   is modified, auto-fading after 2.5 seconds with zero layout shift.
+ *   is modified, auto-fading after 1.5 seconds with zero layout shift.
  * - Accessible UX: WCAG 44x44px minimum touch targets on links, fallback dashes (—).
  */
 export function FieldDisplay<
@@ -96,7 +96,7 @@ export function FieldDisplay<
       setIsGlowing(true);
       const timer = setTimeout(() => {
         setIsGlowing(false);
-      }, 1200);
+      }, 1500);
       return () => clearTimeout(timer);
     } else {
       setIsGlowing(false);

@@ -357,3 +357,27 @@ export function handlePhoneBackspaceKeyDown(
   }
 }
 
+/**
+ * Calculates current age from a YYYY-MM-DD date of birth string.
+ */
+export function calculatePatientAge(dateOfBirth?: string | null): string | null {
+  if (!dateOfBirth) return null;
+  const parts = dateOfBirth.split('-');
+  if (parts.length !== 3) return null;
+
+  const year = parseInt(parts[0], 10);
+  const month = parseInt(parts[1], 10);
+  const day = parseInt(parts[2], 10);
+
+  if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
+
+  const today = new Date();
+  let age = today.getFullYear() - year;
+  const m = today.getMonth() + 1 - month;
+  if (m < 0 || (m === 0 && today.getDate() < day)) {
+    age--;
+  }
+
+  return age >= 0 && age <= 130 ? `${age} yrs old` : null;
+}
+

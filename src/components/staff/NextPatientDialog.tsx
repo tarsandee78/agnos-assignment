@@ -19,10 +19,6 @@ import { cn } from '@/lib/utils';
 // ============================================================================
 
 export interface NextPatientDialogProps {
-  /** Optional custom trigger element */
-  trigger?: React.ReactNode;
-  /** Callback fired after state has been reset */
-  onResetComplete?: () => void;
   /** Additional styling for default trigger */
   className?: string;
   /** Variant of default trigger */
@@ -45,8 +41,6 @@ export interface NextPatientDialogProps {
  * - Meets WCAG 44x44px minimum touch targets for high-tempo clinic workflows.
  */
 export function NextPatientDialog({
-  trigger,
-  onResetComplete,
   className,
   variant = 'outline',
   label = 'Next Patient',
@@ -59,7 +53,6 @@ export function NextPatientDialog({
   const handleConfirm = () => {
     resetStaffState();
     setOpen(false);
-    onResetComplete?.();
   };
 
   const hasActiveData = Boolean(patientData || isSubmitted);
@@ -67,26 +60,20 @@ export function NextPatientDialog({
   return (
     <>
       {/* Trigger Button */}
-      {trigger ? (
-        <div onClick={() => setOpen(true)} className="cursor-pointer">
-          {trigger}
-        </div>
-      ) : (
-        <Button
-          type="button"
-          variant={variant}
-          size="sm"
-          onClick={() => setOpen(true)}
-          className={cn(
-            'gap-1.5 min-h-[44px] px-3.5 text-xs font-semibold touch-target cursor-pointer shadow-xs',
-            className
-          )}
-          title="Prepare for next patient / Clear session"
-        >
-          <UserPlus className="size-3.5" aria-hidden="true" />
-          <span>{label}</span>
-        </Button>
-      )}
+      <Button
+        type="button"
+        variant={variant}
+        size="sm"
+        onClick={() => setOpen(true)}
+        className={cn(
+          'gap-1.5 min-h-[44px] px-3.5 text-xs font-semibold touch-target cursor-pointer shadow-xs',
+          className
+        )}
+        title="Prepare for next patient / Clear session"
+      >
+        <UserPlus className="size-3.5" aria-hidden="true" />
+        <span>{label}</span>
+      </Button>
 
       {/* Confirmation Dialog */}
       <Dialog open={open} onOpenChange={setOpen}>

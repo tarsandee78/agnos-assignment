@@ -1,30 +1,33 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useStaffStore } from '@/store/useStaffStore';
+import { useStaffStore, usePatientField } from '@/store/useStaffStore';
+import { PatientFormData } from '@/lib/schemas';
 import { cn } from '@/lib/utils';
 
 // ============================================================================
 // 1. Interfaces & Types (Small Interface - Matt Pocock)
 // ============================================================================
 
-export interface FieldDisplayProps {
+export interface FieldDisplayProps<
+  Section extends keyof PatientFormData = keyof PatientFormData,
+  Field extends keyof PatientFormData[Section] = keyof PatientFormData[Section]
+> {
   /** Label for the field (e.g. "First Name / ชื่อจริง") */
   label: string;
-  /** Value to display. If empty/null/undefined, renders fallback dash (—) */
+  /** Section key in patient form (optional when value is supplied directly) */
+  section?: Section;
+  /** Field key within the section */
+  field?: Field;
+  /** Explicit value override (e.g. for computed full name) */
   value?: React.ReactNode | string | null;
-  /**
-   * Field identifier or list of identifiers (e.g. 'personal.firstName' or ['personal.firstName', 'personal.lastName'])
-   * to subscribe to for real-time highlight animations.
-   */
-  fieldName?: string | string[];
-  /** Optional custom formatter function */
-  formatter?: (val: unknown) => React.ReactNode;
-  /** Whether to render value in monospace font (ideal for phone numbers, timestamps) */
+  /** Field name identifier for highlight matching (defaults to `${section}.${field}`) */
+  fieldName?: string;
+  /** Whether to render value in monospace font (ideal for phone numbers) */
   mono?: boolean;
   /** Optional clickable link target (e.g. `tel:0812345678` or `mailto:...`) */
   href?: string;
-  /** Optional secondary info badge (e.g. age calculated from date of birth) */
+  /** Optional secondary info badge (e.g. calculated age) */
   subValue?: React.ReactNode;
   /** Optional icon displayed next to the label */
   icon?: React.ComponentType<{ className?: string }>;
@@ -36,22 +39,12 @@ export interface FieldDisplayProps {
 // 2. Helper Functions (Surgical & Pure)
 // ============================================================================
 
-/**
- * Normalizes and checks if any target field identifier matches the active field.
- * Handles both fully-qualified ('personal.firstName') and bare ('firstName') keys.
- */
-function isFieldMatch(
-  target: string | string[] | undefined,
-  active: string | null
-): boolean {
+function isFieldMatch(target: string | undefined, active: string | null): boolean {
   if (!target || !active) return false;
-  const targets = Array.isArray(target) ? target : [target];
-  return targets.some((t) => {
-    if (t === active) return true;
-    const strippedTarget = t.replace(/^(personal|contact|emergency)\./, '');
-    const strippedActive = active.replace(/^(personal|contact|emergency)\./, '');
-    return strippedTarget === strippedActive;
-  });
+  if (target === active) return true;
+  const strippedTarget = target.replace(/^(personal|contact|emergency)\./, '');
+  const strippedActive = active.replace(/^(personal|contact|emergency)\./, '');
+  return strippedTarget === strippedActive;
 }
 
 // ============================================================================
@@ -62,70 +55,72 @@ function isFieldMatch(
  * Atomic Field Display Component for the Staff Intake Monitor.
  *
  * Deep Module Architecture:
- * - Granular Selector: Subscribes only to a boolean comparison in Zustand (`isFieldMatch`),
- *   ensuring other fields never re-render when an unrelated field is modified.
- * - Subtle Pulse & Glow Highlight: Automatically illuminates with an emerald accent
- *   glow when this field is modified, then smoothly fades out after 1.8 seconds.
- * - Zero Cumulative Layout Shift (Zero-CLS): Static padding and fixed-height borders
- *   guarantee zero layout shift during presence/highlight transitions.
- * - Healthcare UX: Clear label-value hierarchy, fallback dashes, and accessible clickable links.
+ * - Granular Selectors: Consumes field data via `usePatientField` and isolates keystroke
+ *   highlighting using conditional selection (`isFieldMatch ? lastFieldChangedAt : null`).
+ *   Unrelated fields NEVER re-render on keystrokes.
+ * - Subtle Pulse & Glow Highlight: Illuminates with an emerald accent glow when this field
+ *   is modified, auto-fading after 2.5 seconds with zero layout shift.
+ * - Accessible UX: WCAG 44x44px minimum touch targets on links, fallback dashes (—).
  */
-export function FieldDisplay({
+export function FieldDisplay<
+  Section extends keyof PatientFormData,
+  Field extends keyof PatientFormData[Section]
+>({
   label,
-  value,
+  section,
+  field,
+  value: propValue,
   fieldName,
-  formatter,
   mono = false,
   href,
   subValue,
   icon: Icon,
   className,
-}: FieldDisplayProps) {
-  // Granular boolean selector: returns boolean primitive so Zustand uses Object.is
-  // to avoid re-renders if this field wasn't the one modified.
-  const isTargetField = useStaffStore((state) =>
-    isFieldMatch(fieldName, state.lastFieldChanged)
+}: FieldDisplayProps<Section, Field>) {
+  // Read value via granular selector if section & field are provided
+  const storeValue = section && field ? usePatientField(section, field) : undefined;
+  const displayValue = propValue !== undefined ? propValue : storeValue;
+
+  const targetField = fieldName ?? (section && field ? `${section}.${String(field)}` : undefined);
+
+  // Conditional selector: only returns timestamp if THIS field was modified, else returns null.
+  // This completely stops other fields from re-rendering on keystrokes.
+  const fieldChangedAt = useStaffStore((state) =>
+    isFieldMatch(targetField, state.lastFieldChanged) ? state.lastFieldChangedAt : null
   );
-  const patientStatus = useStaffStore((state) => state.patientStatus);
-  const lastFieldChangedAt = useStaffStore((state) => state.lastFieldChangedAt);
 
-  const [isRecent, setIsRecent] = useState<boolean>(false);
+  const [isGlowing, setIsGlowing] = useState<boolean>(false);
 
-  // Trigger smooth glow animation on keystroke, auto-fade after 5s inactivity
   useEffect(() => {
-    if (isTargetField && lastFieldChangedAt) {
-      setIsRecent(true);
+    if (fieldChangedAt) {
+      setIsGlowing(true);
       const timer = setTimeout(() => {
-        setIsRecent(false);
-      }, 5000);
+        setIsGlowing(false);
+      }, 2500);
       return () => clearTimeout(timer);
     } else {
-      setIsRecent(false);
+      setIsGlowing(false);
     }
-  }, [isTargetField, lastFieldChangedAt]);
+  }, [fieldChangedAt]);
 
-  const isGlowing = isTargetField && (isRecent || patientStatus === 'typing');
-
-  // Determine formatted display value
   const hasValue =
-    value !== undefined &&
-    value !== null &&
-    (typeof value !== 'string' || value.trim().length > 0);
+    displayValue !== undefined &&
+    displayValue !== null &&
+    (typeof displayValue !== 'string' || displayValue.trim().length > 0);
 
-  let renderedValue: React.ReactNode;
-  if (!hasValue) {
-    renderedValue = (
-      <span className="text-muted-foreground/60 italic font-normal">—</span>
-    );
-  } else if (formatter) {
-    renderedValue = formatter(value);
-  } else {
-    renderedValue = value;
-  }
+  const renderedValue: React.ReactNode = hasValue ? (
+    typeof displayValue === 'string' || React.isValidElement(displayValue) ? (
+      (displayValue as React.ReactNode)
+    ) : (
+      String(displayValue)
+    )
+  ) : (
+    <span className="text-muted-foreground/60 italic font-normal">—</span>
+  );
 
   return (
     <div
-      data-field-name={Array.isArray(fieldName) ? fieldName.join(',') : fieldName}
+      data-field-name={targetField}
       className={cn(
         // Zero-CLS layout: constant padding and border dimensions
         'relative rounded-lg border px-3 py-2.5 transition-all duration-700 ease-out',
@@ -142,7 +137,6 @@ export function FieldDisplay({
           <span>{label}</span>
         </span>
 
-        {/* Live typing pulse indicator */}
         {isGlowing && (
           <span
             role="status"
@@ -166,7 +160,7 @@ export function FieldDisplay({
           {href && hasValue ? (
             <a
               href={href}
-              className="text-primary hover:underline hover:text-primary/90 inline-flex items-center gap-1 transition-colors"
+              className="text-primary hover:underline hover:text-primary/90 inline-flex items-center min-h-[44px] py-1 text-sm font-semibold touch-target transition-colors"
             >
               {renderedValue}
             </a>

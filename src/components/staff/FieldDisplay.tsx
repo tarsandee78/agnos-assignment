@@ -22,8 +22,8 @@ export interface FieldDisplayProps<
   field?: Field;
   /** Explicit value override (e.g. for computed full name) */
   value?: React.ReactNode | string | null;
-  /** Field name identifier for highlight matching (defaults to `${section}.${field}`) */
-  fieldName?: string;
+  /** Field name identifier or list of identifiers for highlight matching (defaults to `${section}.${field}`) */
+  fieldName?: string | string[];
   /** Whether to render value in monospace font (ideal for phone numbers) */
   mono?: boolean;
   /** Optional clickable link target (e.g. `tel:0812345678` or `mailto:...`) */
@@ -42,8 +42,11 @@ export interface FieldDisplayProps<
 // 2. Helper Functions (Surgical & Pure)
 // ============================================================================
 
-function isFieldMatch(target: string | undefined, active: string | null): boolean {
+function isFieldMatch(target: string | string[] | undefined, active: string | null): boolean {
   if (!target || !active) return false;
+  if (Array.isArray(target)) {
+    return target.some((t) => isFieldMatch(t, active));
+  }
   if (target === active) return true;
   const strippedTarget = target.replace(/^(personal|contact|emergency)\./, '');
   const strippedActive = active.replace(/^(personal|contact|emergency)\./, '');
@@ -138,7 +141,7 @@ export function FieldDisplay<
 
   return (
     <div
-      data-field-name={targetField}
+      data-field-name={Array.isArray(targetField) ? targetField.join(',') : targetField}
       className={cn(
         // Zero-CLS layout: constant padding, min-height and border dimensions
         'relative rounded-lg border px-3 py-2.5 transition-all duration-200 ease-out font-sans min-h-[68px] flex flex-col justify-center',

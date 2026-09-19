@@ -252,11 +252,11 @@ export function PersonalDetailsCard({
       />
 
       <CardContent className="space-y-3 pt-4 flex-1">
-        {/* Full Name Display (Key Focus) */}
+        {/* Full Name Display (Key Focus: tracks firstName, middleName, and lastName) */}
         <FieldDisplay
           label={t.personal.fullName}
           value={fullName}
-          fieldName="personal.firstName"
+          fieldName={['personal.firstName', 'personal.middleName', 'personal.lastName']}
           icon={User}
           t={t}
         />

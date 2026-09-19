@@ -8,6 +8,7 @@ import {
   useLastFieldChangedAt,
 } from '@/store/useStaffStore';
 import { StatusBadge } from './StatusBadge';
+import { NextPatientDialog } from './NextPatientDialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DEFAULT_ROOM_ID, RealtimeConnectionStatus } from '@/lib/realtime';
@@ -16,7 +17,6 @@ import {
   Wifi,
   WifiOff,
   Activity,
-  RotateCcw,
   Clock,
   CheckCircle2,
   Radio,
@@ -174,7 +174,6 @@ export function StaffHeader({
 }: StaffHeaderProps) {
   const patientStatus = usePatientStatus();
   const connectionStatus = useConnectionStatus();
-  const resetStaffState = useStaffStore((state) => state.resetStaffState);
 
   return (
     <header
@@ -218,17 +217,8 @@ export function StaffHeader({
           <ActivityTimeIndicator />
         </div>
 
-        {/* Reset State Button (Accessible 44x44px touch target per AGENTS.md §4.4) */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={resetStaffState}
-          className="gap-1.5 text-xs text-muted-foreground hover:text-foreground min-h-[44px] px-3 touch-target"
-          title="Reset intake monitor state"
-        >
-          <RotateCcw className="size-3.5" />
-          <span>Reset State</span>
-        </Button>
+        {/* Next Patient / Clear Session Action (Accessible 44x44px touch target) */}
+        <NextPatientDialog />
       </div>
     </header>
   );

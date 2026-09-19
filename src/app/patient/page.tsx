@@ -13,10 +13,7 @@ import {
   usePatientDraft,
   mergeDraftWithDefault,
 } from "@/hooks/usePatientDraft";
-import {
-  broadcastFormSubmit,
-  trackPatientPresence,
-} from "@/lib/realtime";
+import { usePatientRealtime } from "@/hooks/usePatientRealtime";
 import { PatientStepper } from "@/components/patient/PatientStepper";
 import { StepPersonalInfo } from "@/components/patient/StepPersonalInfo";
 import { StepContactInfo } from "@/components/patient/StepContactInfo";
@@ -45,6 +42,12 @@ export default function PatientPage() {
   // Auto-save draft hook
   const { draft, isLoaded, isSaving, lastSavedAt, clearDraft } = usePatientDraft({
     formData: watchedFormData,
+    currentStep,
+  });
+
+  // Real-time broadcast and presence sync
+  const { handleSubmission } = usePatientRealtime({
+    form,
     currentStep,
   });
 
@@ -118,8 +121,7 @@ export default function PatientPage() {
       const generatedRefId = `AGN-${datePart}-${randPart}`;
 
       // 1. Broadcast submission event to Realtime & update presence
-      await broadcastFormSubmit(currentValues, { submittedAt: nowIso });
-      await trackPatientPresence("submitted", { currentStep: 3 });
+      await handleSubmission(currentValues, nowIso);
 
       // 2. Clear auto-saved draft so user isn't stuck with completed intake on reload
       clearDraft();

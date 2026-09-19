@@ -43,7 +43,7 @@ The system provides zero-friction, accessible personal detail intake on mobile d
 - **Functional Requirements:**
   - Fixed-dimension cards and tabular structures that hold incoming live data without layout shifts.
   - Calm, ambient presence status tracking:
-    - **Actively filling in (`typing`):** Active presence with subtle pulse indicator.
+    - **Actively filling in (`typing`):** Calm solid presence indicator (no `animate-ping`).
     - **Inactive (`idle`):** Muted calm indicator signaling pause without triggering false alarms.
     - **Submitted (`submitted`):** Clear confirmation indicator upon final patient submission.
 

@@ -91,8 +91,8 @@ function ActivityTimeIndicator() {
         : `${Math.floor(elapsedSeconds / 60)}m ${elapsedSeconds % 60}s`;
 
     return (
-      <span className="inline-flex items-center gap-1 text-xs text-slate-700 dark:text-slate-300 font-medium tabular-nums">
-        <Clock className="size-3.5 shrink-0 text-slate-500" />
+      <span className="inline-flex items-center gap-1 text-xs text-inactive-foreground font-medium tabular-nums">
+        <Clock className="size-3.5 shrink-0 text-inactive-foreground/80" />
         <span>Inactive for {formattedElapsed}</span>
       </span>
     );

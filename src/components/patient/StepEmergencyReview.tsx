@@ -18,13 +18,13 @@ import {
   formatPhoneNumber,
   handlePhoneBackspaceKeyDown,
   getPatientFullName,
+  GENDER_DISPLAY_MAP,
   type PatientFormData,
   type PatientFormStep,
 } from "@/lib/schemas";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-
 
 export interface StepEmergencyReviewProps {
   form: UseFormReturn<PatientFormData, any, any>;
@@ -35,13 +35,6 @@ export interface StepEmergencyReviewProps {
   submissionError?: string | null;
   className?: string;
 }
-
-const GENDER_LABELS: Record<string, string> = {
-  male: "Male / ชาย",
-  female: "Female / หญิง",
-  other: "Other / อื่นๆ",
-  prefer_not_to_say: "Not specified / ไม่ประสงค์ระบุ",
-};
 
 function FieldError({ error, id }: { error?: string; id?: string }) {
   if (!error) return null;
@@ -140,7 +133,7 @@ export function StepEmergencyReview({
     { label: "Date of Birth", value: personal?.dateOfBirth },
     {
       label: "Gender",
-      value: personal?.gender ? GENDER_LABELS[personal.gender] || personal.gender : null,
+      value: personal?.gender ? GENDER_DISPLAY_MAP[personal.gender] || personal.gender : null,
     },
     { label: "Language", value: personal?.preferredLanguage },
     { label: "Nationality", value: personal?.nationality },

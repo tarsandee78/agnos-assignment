@@ -31,8 +31,8 @@ const STATUS_CONFIGS: Record<PatientPresenceStatus, StatusConfig> = {
   idle: {
     label: 'Inactive',
     badgeClass:
-      'border-slate-300/70 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300',
-    dotClass: 'bg-slate-400 dark:bg-slate-500',
+      'border-inactive bg-inactive/30 text-inactive-foreground',
+    dotClass: 'bg-inactive-foreground/70',
   },
   submitted: {
     label: 'Submitted',

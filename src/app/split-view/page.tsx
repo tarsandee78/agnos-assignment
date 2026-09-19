@@ -98,7 +98,7 @@ export default function SplitViewPage() {
                 {connectionStatus === "CONNECTED" ? (
                   <Badge
                     variant="outline"
-                    className="text-[10px] py-0 px-1.5 h-5 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 hidden sm:flex items-center gap-1 font-medium"
+                    className="text-xs py-0 px-2 h-5 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 hidden sm:flex items-center gap-1 font-medium"
                   >
                     <span className="size-1.5 rounded-full bg-emerald-500" />
                     <span>Realtime Room</span>
@@ -106,7 +106,7 @@ export default function SplitViewPage() {
                 ) : connectionStatus === "FALLBACK_LOCAL" ? (
                   <Badge
                     variant="outline"
-                    className="text-[10px] py-0 px-1.5 h-5 bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30 hidden sm:flex items-center gap-1 font-medium"
+                    className="text-xs py-0 px-2 h-5 bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30 hidden sm:flex items-center gap-1 font-medium"
                   >
                     <span className="size-1.5 rounded-full bg-amber-500" />
                     <span>Local Fallback</span>
@@ -114,7 +114,7 @@ export default function SplitViewPage() {
                 ) : (
                   <Badge
                     variant="outline"
-                    className="text-[10px] py-0 px-1.5 h-5 bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/30 hidden sm:flex items-center gap-1 font-medium"
+                    className="text-xs py-0 px-2 h-5 bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/30 hidden sm:flex items-center gap-1 font-medium"
                   >
                     <span className="size-1.5 rounded-full bg-blue-500 animate-pulse" />
                     <span>Connecting...</span>

@@ -131,6 +131,13 @@ export const GENDER_OPTIONS = [
   { value: 'prefer_not_to_say', label: 'Prefer not to say' },
 ] as const;
 
+export const GENDER_DISPLAY_MAP: Record<Gender, string> = {
+  male: 'Male / ชาย',
+  female: 'Female / หญิง',
+  other: 'Other / อื่นๆ',
+  prefer_not_to_say: 'Not specified / ไม่ประสงค์ระบุ',
+};
+
 export const PREFERRED_LANGUAGE_OPTIONS = [
   { value: 'Thai', label: 'Thai (ไทย)' },
   { value: 'English', label: 'English' },

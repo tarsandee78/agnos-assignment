@@ -30,6 +30,7 @@ import {
   formatPhoneNumber,
   getPatientFullName,
   calculatePatientAge,
+  GENDER_DISPLAY_MAP,
   type Gender,
 } from '@/lib/schemas';
 
@@ -41,12 +42,13 @@ export interface PatientOverviewCardsProps {
   className?: string;
 }
 
-const GENDER_LABEL_MAP: Record<Gender, string> = {
-  male: 'Male / ชาย',
-  female: 'Female / หญิง',
-  other: 'Other / อื่นๆ',
-  prefer_not_to_say: 'Not specified / ไม่ระบุ',
-};
+function getStepCardClass(isActive: boolean, className?: string) {
+  return cn(
+    'flex flex-col border-border/80 shadow-xs transition-colors duration-200',
+    isActive && 'border-primary/50 ring-1 ring-primary/30',
+    className
+  );
+}
 
 interface CompletenessInfo {
   label: string;
@@ -122,7 +124,7 @@ function StepCardHeader({
                 {stepNumber}. {title}
               </CardTitle>
               {isActive && (
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary/10 text-primary border border-primary/20">
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-primary/10 text-primary border border-primary/20">
                   Active
                 </span>
               )}
@@ -133,7 +135,7 @@ function StepCardHeader({
 
         <Badge
           variant="outline"
-          className={cn('text-[11px] gap-1 py-0.5 px-2 font-medium shrink-0', completeness.badgeClass)}
+          className={cn('text-xs gap-1 py-0.5 px-2 font-medium shrink-0', completeness.badgeClass)}
         >
           <CompletenessIcon className="size-3 shrink-0" />
           <span>{completeness.label}</span>
@@ -166,17 +168,11 @@ export function PersonalDetailsCard({ className }: { className?: string }) {
   const fullName = getPatientFullName(personal);
   const ageLabel = calculatePatientAge(personal?.dateOfBirth);
   const formattedGender = personal?.gender
-    ? GENDER_LABEL_MAP[personal.gender] || personal.gender
+    ? GENDER_DISPLAY_MAP[personal.gender] || personal.gender
     : null;
 
   return (
-    <Card
-      className={cn(
-        'flex flex-col border-border/80 shadow-xs transition-colors duration-200',
-        isActive && 'border-primary/50 ring-1 ring-primary/30',
-        className
-      )}
-    >
+    <Card className={getStepCardClass(isActive, className)}>
       <StepCardHeader
         stepNumber={1}
         title="Personal Details"
@@ -274,13 +270,7 @@ export function ContactDetailsCard({ className }: { className?: string }) {
   const emailHref = contact?.email ? `mailto:${contact.email}` : undefined;
 
   return (
-    <Card
-      className={cn(
-        'flex flex-col border-border/80 shadow-xs transition-colors duration-200',
-        isActive && 'border-primary/50 ring-1 ring-primary/30',
-        className
-      )}
-    >
+    <Card className={getStepCardClass(isActive, className)}>
       <StepCardHeader
         stepNumber={2}
         title="Contact & Address"
@@ -346,13 +336,7 @@ export function EmergencyContactCard({ className }: { className?: string }) {
     : undefined;
 
   return (
-    <Card
-      className={cn(
-        'flex flex-col border-border/80 shadow-xs transition-colors duration-200',
-        isActive && 'border-primary/50 ring-1 ring-primary/30',
-        className
-      )}
-    >
+    <Card className={getStepCardClass(isActive, className)}>
       <StepCardHeader
         stepNumber={3}
         title="Emergency Contact"

@@ -141,7 +141,7 @@ export function FieldDisplay<
           <span
             role="status"
             aria-live="polite"
-            className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 dark:text-emerald-300 shrink-0 transition-opacity duration-200"
+            className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 dark:text-emerald-300 shrink-0 transition-opacity duration-200"
           >
             <span className="size-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400" aria-hidden="true" />
             <span>Updated</span>

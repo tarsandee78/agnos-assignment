@@ -18,13 +18,14 @@ import {
   formatPhoneNumber,
   handlePhoneBackspaceKeyDown,
   getPatientFullName,
-  GENDER_DISPLAY_MAP,
   type PatientFormData,
   type PatientFormStep,
 } from "@/lib/schemas";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/hooks/useLanguage";
+import { type Language, type TranslationDictionary } from "@/lib/i18n/translations";
 
 export interface StepEmergencyReviewProps {
   form: UseFormReturn<PatientFormData, any, any>;
@@ -34,6 +35,8 @@ export interface StepEmergencyReviewProps {
   isSubmitting?: boolean;
   submissionError?: string | null;
   className?: string;
+  lang?: Language;
+  t?: TranslationDictionary;
 }
 
 function FieldError({ error, id }: { error?: string; id?: string }) {
@@ -59,11 +62,13 @@ function SummarySection({
   title,
   icon: Icon,
   onEdit,
+  editLabel = "Edit",
   items,
 }: {
   title: string;
   icon: React.ComponentType<{ className?: string }>;
   onEdit?: () => void;
+  editLabel?: string;
   items: SummaryItem[];
 }) {
   return (
@@ -74,39 +79,41 @@ function SummarySection({
           <span>{title}</span>
         </div>
         {onEdit && (
-          <Button
+          <button
             type="button"
-            variant="ghost"
-            size="sm"
             onClick={onEdit}
-            className="min-h-[44px] min-w-[44px] h-11 px-3 text-xs sm:text-sm text-primary font-semibold hover:bg-primary/10 touch-target cursor-pointer"
-            aria-label={`Edit ${title}`}
+            className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 font-medium py-1 px-2 rounded-md hover:bg-primary/10 transition-colors cursor-pointer"
           >
-            <Edit3 className="size-3.5 mr-1.5" aria-hidden="true" />
-            Edit
-          </Button>
+            <Edit3 className="size-3" aria-hidden="true" />
+            <span>{editLabel}</span>
+          </button>
         )}
       </div>
-      <div className="space-y-2">
-        {items.map((item) => (
-          <div
-            key={item.label}
-            className="flex justify-between items-start gap-2 border-b border-border/30 last:border-0 pb-1.5 last:pb-0"
-          >
-            <span className="text-muted-foreground font-medium shrink-0">{item.label}:</span>
-            <span className="font-semibold text-foreground text-right break-words max-w-[65%]">
-              {item.value || "—"}
-            </span>
+
+      <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+        {items.map((item, idx) => (
+          <div key={idx} className="flex flex-col">
+            <dt className="text-muted-foreground text-[11px] font-medium">{item.label}</dt>
+            <dd className="font-medium text-foreground truncate mt-0.5">
+              {item.value || <span className="text-muted-foreground/60 italic">—</span>}
+            </dd>
           </div>
         ))}
-      </div>
+      </dl>
     </div>
   );
 }
 
 /**
  * StepEmergencyReview Component
- * Clean, senior-grade implementation adhering to Karpathy Simplicity First and Matt Pocock deep design.
+ *
+ * Patient intake multi-step wizard - Step 3: Emergency Contact & Final Review.
+ *
+ * Features:
+ * - Single-language UI driven by i18n dictionary (clean TH/EN)
+ * - Uniform label container heights ensuring input alignment
+ * - Accessible healthcare UX: 44x44px touch targets
+ * - Summary sections with direct edit jump-back links
  */
 export function StepEmergencyReview({
   form,
@@ -116,7 +123,11 @@ export function StepEmergencyReview({
   isSubmitting = false,
   submissionError = null,
   className,
+  t: propT,
 }: StepEmergencyReviewProps) {
+  const defaultHook = useLanguage("agnos_lang_patient", "th");
+  const t = propT || defaultHook.t;
+
   const {
     register,
     control,
@@ -129,21 +140,33 @@ export function StepEmergencyReview({
   const fullName = getPatientFullName(personal);
 
   const personalSummary: SummaryItem[] = [
-    { label: "Full Name", value: fullName },
-    { label: "Date of Birth", value: personal?.dateOfBirth },
+    { label: t.personal.fullName, value: fullName },
+    { label: t.personal.dateOfBirth, value: personal?.dateOfBirth },
     {
-      label: "Gender",
-      value: personal?.gender ? GENDER_DISPLAY_MAP[personal.gender] || personal.gender : null,
+      label: t.personal.gender,
+      value: personal?.gender
+        ? t.personal.genderOptions[personal.gender as keyof typeof t.personal.genderOptions] || personal.gender
+        : null,
     },
-    { label: "Language", value: personal?.preferredLanguage },
-    { label: "Nationality", value: personal?.nationality },
-    { label: "Religion", value: personal?.religion || "None / Not specified" },
+    {
+      label: t.personal.preferredLanguage,
+      value: personal?.preferredLanguage
+        ? t.personal.languageOptions[personal.preferredLanguage as keyof typeof t.personal.languageOptions] || personal.preferredLanguage
+        : null,
+    },
+    { label: t.personal.nationality, value: personal?.nationality },
+    {
+      label: t.personal.religion,
+      value: personal?.religion
+        ? t.personal.religionOptions[personal.religion as keyof typeof t.personal.religionOptions] || personal.religion
+        : t.personal.religionOptions.None,
+    },
   ];
 
   const contactSummary: SummaryItem[] = [
-    { label: "Phone Number", value: contact?.phoneNumber },
-    { label: "Email", value: contact?.email },
-    { label: "Address", value: contact?.address },
+    { label: t.contact.phoneNumber, value: contact?.phoneNumber },
+    { label: t.contact.email, value: contact?.email },
+    { label: t.contact.address, value: contact?.address },
   ];
 
   const hasEmergency = Boolean(
@@ -152,11 +175,11 @@ export function StepEmergencyReview({
 
   const emergencySummary: SummaryItem[] = hasEmergency
     ? [
-        { label: "Contact Name", value: emergency?.contactName },
-        { label: "Relationship", value: emergency?.relationship },
-        { label: "Emergency Phone", value: emergency?.contactPhone },
+        { label: t.emergency.contactName, value: emergency?.contactName },
+        { label: t.emergency.relationship, value: emergency?.relationship },
+        { label: t.emergency.emergencyPhone, value: emergency?.contactPhone },
       ]
-    : [{ label: "Emergency Contact", value: "Not provided (Optional)" }];
+    : [{ label: t.steps.step3Title, value: t.emergency.notProvided }];
 
   return (
     <div className={cn("w-full bg-card rounded-2xl border border-border/80 p-6 sm:p-8 shadow-xs space-y-8", className)}>
@@ -167,10 +190,10 @@ export function StepEmergencyReview({
         </div>
         <div>
           <h2 className="text-lg sm:text-xl font-bold text-foreground tracking-tight">
-            Emergency Contact &amp; Review
+            {t.steps.step3Title}
           </h2>
           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-            ข้อมูลผู้ติดต่อฉุกเฉินและตรวจสอบความถูกต้องของข้อมูลก่อนส่ง
+            {t.steps.step3Desc}
           </p>
         </div>
       </div>
@@ -179,22 +202,24 @@ export function StepEmergencyReview({
       <div className="space-y-5">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold text-foreground">
-            Emergency Contact Information
+            {t.emergency.sectionTitle}
           </h3>
-          <span className="text-xs text-muted-foreground">(Optional / ไม่บังคับระบุ)</span>
+          <span className="text-xs text-muted-foreground">{t.common.optional}</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {/* Contact Name */}
           <div className="space-y-2">
-            <Label htmlFor="contactName" className="text-sm font-medium">
-              Contact Name / ชื่อผู้ติดต่อ
-            </Label>
+            <div className="flex items-center justify-between min-h-[26px]">
+              <Label htmlFor="contactName" className="text-sm font-medium">
+                {t.emergency.contactName}
+              </Label>
+            </div>
             <Input
               id="contactName"
               type="text"
               maxLength={100}
-              placeholder="e.g. สมศรี ใจดี / Somsri Jaidee"
+              placeholder={t.emergency.contactNamePlaceholder}
               autoComplete="name"
               aria-invalid={Boolean(emergencyErrors?.contactName)}
               aria-describedby={emergencyErrors?.contactName ? "contactName-error" : undefined}
@@ -206,9 +231,11 @@ export function StepEmergencyReview({
 
           {/* Emergency Phone */}
           <div className="space-y-2">
-            <Label htmlFor="contactPhone" className="text-sm font-medium">
-              Emergency Phone / เบอร์โทรฉุกเฉิน
-            </Label>
+            <div className="flex items-center justify-between min-h-[26px]">
+              <Label htmlFor="contactPhone" className="text-sm font-medium">
+                {t.emergency.emergencyPhone}
+              </Label>
+            </div>
             <Controller
               control={control}
               name="emergency.contactPhone"
@@ -218,7 +245,7 @@ export function StepEmergencyReview({
                   type="tel"
                   inputMode="tel"
                   autoComplete="tel"
-                  placeholder="e.g. 089-123-4567"
+                  placeholder={t.emergency.emergencyPhonePlaceholder}
                   value={field.value || ""}
                   onChange={(e) => field.onChange(formatPhoneNumber(e.target.value))}
                   onBlur={field.onBlur}
@@ -235,14 +262,16 @@ export function StepEmergencyReview({
 
         {/* Relationship */}
         <div className="space-y-2">
-          <Label htmlFor="relationship" className="text-sm font-medium">
-            Relationship / ความสัมพันธ์
-          </Label>
+          <div className="flex items-center justify-between min-h-[26px]">
+            <Label htmlFor="relationship" className="text-sm font-medium">
+              {t.emergency.relationship}
+            </Label>
+          </div>
           <Input
             id="relationship"
             type="text"
             maxLength={50}
-            placeholder="e.g. มารดา (Mother), คู่สมรส (Spouse), บุตร (Child)"
+            placeholder={t.emergency.relationshipPlaceholder}
             aria-invalid={Boolean(emergencyErrors?.relationship)}
             aria-describedby={emergencyErrors?.relationship ? "relationship-error" : undefined}
             className="min-h-[44px] h-11 text-base touch-target"
@@ -256,31 +285,34 @@ export function StepEmergencyReview({
       <div className="space-y-4 pt-6 border-t border-border/60">
         <div>
           <h3 className="text-base sm:text-lg font-bold text-foreground">
-            Review Registration Summary / ตรวจสอบข้อมูลก่อนส่ง
+            {t.review.reviewTitle}
           </h3>
           <p className="text-xs text-muted-foreground mt-0.5">
-            กรุณาตรวจสอบความถูกต้องของข้อมูลทั้งหมด หากต้องการแก้ไขสามารถคลิก &quot;Edit&quot; ที่ส่วนนั้นได้
+            {t.review.reviewDesc}
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <SummarySection
-            title="Personal Details"
+            title={t.steps.step1Title}
             icon={User}
             onEdit={() => onEditStep(1)}
+            editLabel={t.common.edit}
             items={personalSummary}
           />
           <SummarySection
-            title="Contact & Address"
+            title={t.steps.step2Title}
             icon={Phone}
             onEdit={() => onEditStep(2)}
+            editLabel={t.common.edit}
             items={contactSummary}
           />
         </div>
 
         <SummarySection
-          title="Emergency Contact"
+          title={t.steps.step3Title}
           icon={ShieldAlert}
+          editLabel={t.common.edit}
           items={emergencySummary}
         />
       </div>
@@ -306,7 +338,7 @@ export function StepEmergencyReview({
           className="w-full sm:w-auto min-h-[44px] h-11 px-5 font-medium text-base touch-target cursor-pointer hover:bg-muted"
         >
           <ArrowLeft className="size-4 mr-2" aria-hidden="true" />
-          <span>Back: Contact & Address</span>
+          <span>{t.common.back}: {t.steps.step2Title}</span>
         </Button>
 
         <Button
@@ -318,12 +350,12 @@ export function StepEmergencyReview({
           {isSubmitting ? (
             <>
               <Loader2 className="size-4 mr-2 animate-spin" aria-hidden="true" />
-              <span>Submitting Registration...</span>
+              <span>{t.common.submitting}</span>
             </>
           ) : (
             <>
               <Send className="size-4 mr-2 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
-              <span>Submit Form / ส่งข้อมูลลงทะเบียน</span>
+              <span>{t.common.submit}</span>
             </>
           )}
         </Button>

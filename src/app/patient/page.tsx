@@ -14,6 +14,8 @@ import {
   mergeDraftWithDefault,
 } from "@/hooks/usePatientDraft";
 import { usePatientRealtime } from "@/hooks/usePatientRealtime";
+import { useLanguage } from "@/hooks/useLanguage";
+import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { PatientStepper } from "@/components/patient/PatientStepper";
 import { StepPersonalInfo } from "@/components/patient/StepPersonalInfo";
 import { StepContactInfo } from "@/components/patient/StepContactInfo";
@@ -22,6 +24,7 @@ import { SubmissionSuccessDialog } from "@/components/patient/SubmissionSuccessD
 import { CheckCircle2, Cloud, HeartPulse } from "lucide-react";
 
 export default function PatientPage() {
+  const { lang, setLang, t } = useLanguage("agnos_lang_patient", "th");
   const [currentStep, setCurrentStep] = React.useState<PatientFormStep>(1);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [submissionError, setSubmissionError] = React.useState<string | null>(null);
@@ -102,13 +105,13 @@ export default function PatientPage() {
       if (!isFormValid) {
         const currentErrors = form.formState.errors;
         if (currentErrors.personal) {
-          setSubmissionError("Please review and fix errors in Step 1 (Personal Details)");
+          setSubmissionError(lang === "th" ? "กรุณาตรวจสอบและแก้ไขข้อผิดพลาดในขั้นตอนที่ 1 (ข้อมูลส่วนตัว)" : "Please review and fix errors in Step 1 (Personal Details)");
         } else if (currentErrors.contact) {
-          setSubmissionError("Please review and fix errors in Step 2 (Contact & Address)");
+          setSubmissionError(lang === "th" ? "กรุณาตรวจสอบและแก้ไขข้อผิดพลาดในขั้นตอนที่ 2 (ข้อมูลติดต่อและที่อยู่)" : "Please review and fix errors in Step 2 (Contact & Address)");
         } else if (currentErrors.emergency) {
-          setSubmissionError("Please review and fix errors in Emergency Contact");
+          setSubmissionError(lang === "th" ? "กรุณาตรวจสอบและแก้ไขข้อมูลผู้ติดต่อฉุกเฉิน" : "Please review and fix errors in Emergency Contact");
         } else {
-          setSubmissionError("Please ensure all required fields are correctly completed");
+          setSubmissionError(lang === "th" ? "กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วนถูกต้อง" : "Please ensure all required fields are correctly completed");
         }
         setIsSubmitting(false);
         return;
@@ -133,7 +136,7 @@ export default function PatientPage() {
       setIsSuccessOpen(true);
     } catch (err) {
       console.error("[PatientPage] Submission failed:", err);
-      setSubmissionError("An unexpected error occurred while submitting. Please try again.");
+      setSubmissionError(lang === "th" ? "เกิดข้อผิดพลาดที่ไม่คาดคิด กรุณาลองใหม่อีกครั้ง" : "An unexpected error occurred while submitting. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -153,39 +156,47 @@ export default function PatientPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
+    <div className="min-h-screen bg-background text-foreground flex flex-col font-sans">
       {/* Top Brand & Status Navigation */}
       <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-md border-b border-border/80 shadow-2xs">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
             <div className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-xs">
               <HeartPulse className="size-5" />
             </div>
             <div>
               <h1 className="text-base font-bold tracking-tight text-foreground">
-                Agnos Health
+                {t.nav.brand}
               </h1>
               <p className="text-xs text-muted-foreground">
-                Patient Intake Registration / แบบฟอร์มลงทะเบียนผู้ป่วย
+                {t.nav.patientTitle}
               </p>
             </div>
           </div>
 
-          {/* Auto-save Status Badge */}
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/60 px-3 py-1.5 rounded-full border border-border/50">
-            {isSaving ? (
-              <>
-                <Cloud className="size-3.5 animate-pulse text-primary" />
-                <span className="hidden sm:inline">Saving draft...</span>
-              </>
-            ) : lastSavedAt ? (
-              <>
-                <CheckCircle2 className="size-3.5 text-success" />
-                <span className="hidden sm:inline">Draft saved locally</span>
-              </>
-            ) : (
-              <span>Ready</span>
-            )}
+          <div className="flex items-center gap-2.5">
+            {/* Language Switcher */}
+            <LanguageToggle
+              currentLang={lang}
+              onLanguageChange={setLang}
+            />
+
+            {/* Auto-save Status Badge */}
+            <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/60 px-3 py-1.5 rounded-full border border-border/50">
+              {isSaving ? (
+                <>
+                  <Cloud className="size-3.5 animate-pulse text-primary" />
+                  <span>{t.common.saveDraft}</span>
+                </>
+              ) : lastSavedAt ? (
+                <>
+                  <CheckCircle2 className="size-3.5 text-success" />
+                  <span>{t.common.draftSaved}</span>
+                </>
+              ) : (
+                <span>{t.common.ready}</span>
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -195,6 +206,8 @@ export default function PatientPage() {
         <PatientStepper
           currentStep={currentStep}
           onStepClick={handleStepClick}
+          lang={lang}
+          t={t}
         />
       </div>
 
@@ -204,6 +217,8 @@ export default function PatientPage() {
           <StepPersonalInfo
             form={form}
             onNext={() => setCurrentStep(2)}
+            lang={lang}
+            t={t}
           />
         )}
 
@@ -212,6 +227,8 @@ export default function PatientPage() {
             form={form}
             onNext={() => setCurrentStep(3)}
             onBack={() => setCurrentStep(1)}
+            lang={lang}
+            t={t}
           />
         )}
 
@@ -223,6 +240,8 @@ export default function PatientPage() {
             onEditStep={(step) => setCurrentStep(step)}
             isSubmitting={isSubmitting}
             submissionError={submissionError}
+            lang={lang}
+            t={t}
           />
         )}
       </main>
@@ -235,6 +254,7 @@ export default function PatientPage() {
         referenceId={referenceId}
         submittedAt={submittedAt || undefined}
         onResetAndNew={handleResetAndNew}
+        t={t}
       />
     </div>
   );

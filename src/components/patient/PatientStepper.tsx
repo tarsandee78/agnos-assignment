@@ -4,6 +4,8 @@ import * as React from "react";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PatientFormStep } from "@/lib/schemas";
+import { useLanguage } from "@/hooks/useLanguage";
+import { type Language, type TranslationDictionary } from "@/lib/i18n/translations";
 
 export interface StepItem {
   step: PatientFormStep;
@@ -11,27 +13,6 @@ export interface StepItem {
   shortLabel: string;
   description: string;
 }
-
-export const PATIENT_STEPS: readonly StepItem[] = [
-  {
-    step: 1,
-    label: "Personal Details",
-    shortLabel: "Personal",
-    description: "ข้อมูลส่วนตัว",
-  },
-  {
-    step: 2,
-    label: "Contact & Address",
-    shortLabel: "Contact",
-    description: "ข้อมูลติดต่อและที่อยู่",
-  },
-  {
-    step: 3,
-    label: "Emergency & Review",
-    shortLabel: "Review",
-    description: "ผู้ติดต่อฉุกเฉินและตรวจสอบข้อมูล",
-  },
-] as const;
 
 export interface PatientStepperProps {
   /** The current active step in the wizard (1, 2, or 3) */
@@ -42,28 +23,48 @@ export interface PatientStepperProps {
   isStepComplete?: (step: PatientFormStep) => boolean;
   /** Optional additional CSS classes for styling customization */
   className?: string;
+  /** Active language */
+  lang?: Language;
+  /** Translation dictionary */
+  t?: TranslationDictionary;
 }
 
-/**
- * PatientStepper Component
- *
- * A mobile-first, ultra-responsive 3-step wizard navigation header designed for
- * patient intake workflows in healthcare environments.
- *
- * Features:
- * - Ultra-responsive layout supporting widths down to 320px without horizontal overflow
- * - WCAG 2.1 AA compliant with 44x44px minimum touch targets and 4.5:1 contrast
- * - Semantic HTML (<nav aria-label="Progress">, <ol>, <li>, aria-current="step")
- * - Connected progress lines showing completion progress between steps
- */
 export function PatientStepper({
   currentStep,
   onStepClick,
   isStepComplete,
   className,
+  t: propT,
 }: PatientStepperProps) {
+  const defaultHook = useLanguage("agnos_lang_patient", "th");
+  const t = propT || defaultHook.t;
+
+  const steps: StepItem[] = React.useMemo(
+    () => [
+      {
+        step: 1,
+        label: t.steps.step1Title,
+        shortLabel: t.steps.step1Title,
+        description: t.steps.step1Desc,
+      },
+      {
+        step: 2,
+        label: t.steps.step2Title,
+        shortLabel: t.steps.step2Title,
+        description: t.steps.step2Desc,
+      },
+      {
+        step: 3,
+        label: t.steps.step3Title,
+        shortLabel: t.steps.step3Title,
+        description: t.steps.step3Desc,
+      },
+    ],
+    [t]
+  );
+
   const currentStepItem =
-    PATIENT_STEPS.find((s) => s.step === currentStep) ?? PATIENT_STEPS[0];
+    steps.find((s) => s.step === currentStep) ?? steps[0];
 
   const checkCompleted = (stepNum: PatientFormStep): boolean => {
     if (isStepComplete) {
@@ -72,37 +73,37 @@ export function PatientStepper({
     return currentStep > stepNum;
   };
 
-  const completedStepsCount = PATIENT_STEPS.filter((s) =>
+  const completedStepsCount = steps.filter((s) =>
     checkCompleted(s.step)
   ).length;
   const progressPercent = Math.round(
-    (completedStepsCount / PATIENT_STEPS.length) * 100
+    (completedStepsCount / steps.length) * 100
   );
 
   return (
     <header
       className={cn(
-        "w-full bg-card/80 backdrop-blur-xs border-b border-border/70 py-3.5 px-3 sm:px-6",
+        "w-full bg-card/80 backdrop-blur-xs border-b border-border/70 py-3.5 px-3 sm:px-6 rounded-xl shadow-2xs",
         className
       )}
     >
       {/* Top Status & Progress Summary */}
       <div className="flex items-center justify-between text-xs mb-2.5 px-0.5 sm:px-1 gap-2">
         <span className="font-medium text-foreground truncate">
-          Step {currentStep} of {PATIENT_STEPS.length}:{" "}
+          {t.nav.stepOf(currentStep, steps.length)}:{" "}
           <span className="text-primary font-semibold">
             {currentStepItem.label}
           </span>
         </span>
         <span className="shrink-0 text-xs font-semibold text-muted-foreground tabular-nums">
-          {progressPercent}% Complete
+          {t.nav.completePercent(progressPercent)}
         </span>
       </div>
 
       {/* Semantic Stepper Navigation */}
       <nav aria-label="Progress" className="w-full">
         <ol className="grid grid-cols-3 w-full relative">
-          {PATIENT_STEPS.map((item, index) => {
+          {steps.map((item, index) => {
             const stepNum = item.step;
             const completed = checkCompleted(stepNum);
             const isActive = currentStep === stepNum;
@@ -110,7 +111,7 @@ export function PatientStepper({
             const isClickable = Boolean(
               onStepClick && (completed || stepNum <= currentStep)
             );
-            const isLast = index === PATIENT_STEPS.length - 1;
+            const isLast = index === steps.length - 1;
 
             return (
               <li
@@ -178,10 +179,9 @@ export function PatientStepper({
                         isUpcoming && "text-muted-foreground font-normal"
                       )}
                     >
-                      <span className="sm:hidden">{item.shortLabel}</span>
-                      <span className="hidden sm:inline">{item.label}</span>
+                      <span>{item.label}</span>
                     </span>
-                    <span className="hidden md:inline-block text-[11px] text-muted-foreground mt-0.5">
+                    <span className="hidden md:inline-block text-[11px] text-muted-foreground mt-0.5 truncate max-w-[180px]">
                       {item.description}
                     </span>
                   </span>

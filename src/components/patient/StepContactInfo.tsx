@@ -20,7 +20,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-
+import { useLanguage } from "@/hooks/useLanguage";
+import { type Language, type TranslationDictionary } from "@/lib/i18n/translations";
 
 export interface StepContactInfoProps {
   /** React Hook Form instance for PatientFormData */
@@ -31,6 +32,10 @@ export interface StepContactInfoProps {
   onBack: () => void;
   /** Optional custom CSS classes */
   className?: string;
+  /** Active language */
+  lang?: Language;
+  /** Translation dictionary */
+  t?: TranslationDictionary;
 }
 
 function RequiredIndicator() {
@@ -67,21 +72,24 @@ function FieldError({ error, id }: FieldErrorProps) {
  *
  * Features:
  * - 3 fields aligned with `contactInfoSchema`: Phone Number, Email, Residential Address
+ * - Uniform label container heights ensuring pixel-perfect alignment
+ * - Single-language UI driven by i18n dictionary (clean TH/EN)
  * - Phone number auto-formatting / input masking: Formats Thai mobile (08X-XXX-XXXX),
  *   landline (02-XXX-XXXX), and international numbers (+66...) seamlessly while typing
- * - Smooth backspace and paste handling
- * - Smart validation UX: validates on blur, preventing premature errors during typing
  * - Character count indicator for Address field (max 300 characters)
  * - Accessible healthcare UX: minimum 44x44px touch targets, 16px font preventing iOS Safari auto-zoom
- * - Semantic HTML with ARIA linking (`<Label htmlFor="...">`, `aria-invalid`, `aria-describedby`)
- * - Responsive layout supporting mobile screens down to 320px
+ * - Semantic HTML with ARIA linking
  */
 export function StepContactInfo({
   form,
   onNext,
   onBack,
   className,
+  t: propT,
 }: StepContactInfoProps) {
+  const defaultHook = useLanguage("agnos_lang_patient", "th");
+  const t = propT || defaultHook.t;
+
   const {
     register,
     control,
@@ -109,10 +117,10 @@ export function StepContactInfo({
         </div>
         <div>
           <h2 className="text-lg sm:text-xl font-bold text-foreground tracking-tight">
-            Contact & Address
+            {t.steps.step2Title}
           </h2>
           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-            ข้อมูลติดต่อและที่อยู่ปัจจุบัน เพื่อการติดต่อและการส่งเอกสารทางการแพทย์
+            {t.steps.step2Desc}
           </p>
         </div>
       </div>
@@ -123,11 +131,13 @@ export function StepContactInfo({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {/* Phone Number with Auto-Formatting */}
           <div className="space-y-2">
-            <Label htmlFor="phoneNumber" className="text-sm font-medium flex items-center gap-1.5">
-              <Phone className="size-3.5 text-muted-foreground" aria-hidden="true" />
-              <span>Phone Number / เบอร์โทรศัพท์</span>
-              <RequiredIndicator />
-            </Label>
+            <div className="flex items-center justify-between min-h-[26px]">
+              <Label htmlFor="phoneNumber" className="text-sm font-medium flex items-center gap-1.5">
+                <Phone className="size-3.5 text-muted-foreground" aria-hidden="true" />
+                <span>{t.contact.phoneNumber}</span>
+                <RequiredIndicator />
+              </Label>
+            </div>
             <Controller
               control={control}
               name="contact.phoneNumber"
@@ -138,7 +148,7 @@ export function StepContactInfo({
                     type="tel"
                     inputMode="tel"
                     autoComplete="tel"
-                    placeholder="e.g. 081-234-5678 or +66 81 234 5678"
+                    placeholder={t.contact.phonePlaceholder}
                     value={field.value || ""}
                     onChange={(e) => {
                       const formatted = formatPhoneNumber(e.target.value);
@@ -150,16 +160,13 @@ export function StepContactInfo({
                     aria-describedby={
                       contactErrors?.phoneNumber
                         ? "phoneNumber-error"
-                        : "phoneNumber-hint"
+                        : undefined
                     }
                     className="min-h-[44px] h-11 text-base touch-target tabular-nums"
                   />
                 </div>
               )}
             />
-            <p id="phoneNumber-hint" className="text-xs text-muted-foreground">
-              รองรับเบอร์มือถือไทย 10 หลัก (08X-XXX-XXXX) หรือเบอร์สากล (+66...)
-            </p>
             <FieldError
               id="phoneNumber-error"
               error={contactErrors?.phoneNumber?.message}
@@ -168,27 +175,26 @@ export function StepContactInfo({
 
           {/* Email */}
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-medium flex items-center gap-1.5">
-              <Mail className="size-3.5 text-muted-foreground" aria-hidden="true" />
-              <span>Email / อีเมล</span>
-              <RequiredIndicator />
-            </Label>
+            <div className="flex items-center justify-between min-h-[26px]">
+              <Label htmlFor="email" className="text-sm font-medium flex items-center gap-1.5">
+                <Mail className="size-3.5 text-muted-foreground" aria-hidden="true" />
+                <span>{t.contact.email}</span>
+                <RequiredIndicator />
+              </Label>
+            </div>
             <Input
               id="email"
               type="email"
               inputMode="email"
-              placeholder="e.g. somchai.j@example.com"
+              placeholder={t.contact.emailPlaceholder}
               autoComplete="email"
               aria-invalid={Boolean(contactErrors?.email)}
               aria-describedby={
-                contactErrors?.email ? "email-error" : "email-hint"
+                contactErrors?.email ? "email-error" : undefined
               }
               className="min-h-[44px] h-11 text-base touch-target"
               {...register("contact.email")}
             />
-            <p id="email-hint" className="text-xs text-muted-foreground">
-              สำหรับรับเอกสารรับรองแพทย์หรือผลตรวจทางอิเล็กทรอนิกส์
-            </p>
             <FieldError
               id="email-error"
               error={contactErrors?.email?.message}
@@ -198,10 +204,10 @@ export function StepContactInfo({
 
         {/* Section 2: Residential Address */}
         <div className="space-y-2 pt-1">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between min-h-[26px]">
             <Label htmlFor="address" className="text-sm font-medium flex items-center gap-1.5">
               <MapPin className="size-3.5 text-muted-foreground" aria-hidden="true" />
-              <span>Current Residential Address / ที่อยู่ปัจจุบัน</span>
+              <span>{t.contact.address}</span>
               <RequiredIndicator />
             </Label>
             <span
@@ -221,18 +227,15 @@ export function StepContactInfo({
             id="address"
             rows={3}
             maxLength={300}
-            placeholder="e.g. 123/45 หมู่บ้านสุขสบาย ซอย 5 ถนนสุขุมวิท แขวงคลองเตย เขตคลองเตย กรุงเทพมหานคร 10110"
+            placeholder={t.contact.addressPlaceholder}
             autoComplete="street-address"
             aria-invalid={Boolean(contactErrors?.address)}
             aria-describedby={
-              contactErrors?.address ? "address-error" : "address-hint"
+              contactErrors?.address ? "address-error" : undefined
             }
             className="min-h-[100px] text-base touch-target leading-relaxed"
             {...register("contact.address")}
           />
-          <p id="address-hint" className="text-xs text-muted-foreground">
-            ระบุเลขที่บ้าน หมู่ ซอย ถนน ตำบล/แขวง อำเภอ/เขต จังหวัด และรหัสไปรษณีย์
-          </p>
           <FieldError
             id="address-error"
             error={contactErrors?.address?.message}
@@ -249,7 +252,7 @@ export function StepContactInfo({
           className="w-full sm:w-auto min-h-[44px] h-11 px-5 font-medium text-base touch-target cursor-pointer hover:bg-muted"
         >
           <ArrowLeft className="size-4 mr-2" aria-hidden="true" />
-          <span>Back: Personal Details</span>
+          <span>{t.common.back}: {t.steps.step1Title}</span>
         </Button>
 
         <Button
@@ -257,7 +260,7 @@ export function StepContactInfo({
           onClick={handleNext}
           className="w-full sm:w-auto min-h-[44px] h-11 px-6 font-semibold text-base touch-target group shadow-xs cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90"
         >
-          <span>Next: Emergency & Review</span>
+          <span>{t.common.next}: {t.steps.step3Title}</span>
           <ArrowRight className="size-4 ml-1.5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
         </Button>
       </div>

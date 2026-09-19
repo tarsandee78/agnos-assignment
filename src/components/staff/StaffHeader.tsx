@@ -9,8 +9,8 @@ import {
 } from '@/store/useStaffStore';
 import { StatusBadge } from './StatusBadge';
 import { NextPatientDialog } from './NextPatientDialog';
+import { LanguageToggle } from '@/components/ui/LanguageToggle';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { DEFAULT_ROOM_ID, RealtimeConnectionStatus } from '@/lib/realtime';
 import { cn } from '@/lib/utils';
 import {
@@ -21,6 +21,7 @@ import {
   CheckCircle2,
   Radio,
 } from 'lucide-react';
+import { type Language, type TranslationDictionary } from '@/lib/i18n/translations';
 
 // ============================================================================
 // 1. Types & Interfaces
@@ -29,17 +30,16 @@ import {
 export interface StaffHeaderProps {
   roomId?: string;
   className?: string;
+  lang?: Language;
+  onLanguageChange?: (lang: Language) => void;
+  t?: TranslationDictionary;
 }
 
 // ============================================================================
 // 2. Activity / Inactivity Time Indicator (Isolated Sub-component)
 // ============================================================================
 
-/**
- * Isolated timer component that tracks inactivity or last-active duration.
- * Runs a 1-second interval only during idle state to prevent re-rendering the header or page.
- */
-function ActivityTimeIndicator() {
+function ActivityTimeIndicator({ t }: { t?: TranslationDictionary }) {
   const patientStatus = usePatientStatus();
   const lastFieldChangedAt = useLastFieldChangedAt();
   const isSubmitted = useStaffStore((s) => s.isSubmitted);
@@ -67,7 +67,7 @@ function ActivityTimeIndicator() {
     return (
       <span className="inline-flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
         <CheckCircle2 className="size-3.5 shrink-0" />
-        <span>Submitted at {formattedTime}</span>
+        <span>{t?.staff.time.submittedAt(formattedTime) ?? `Submitted at ${formattedTime}`}</span>
       </span>
     );
   }
@@ -76,7 +76,7 @@ function ActivityTimeIndicator() {
     return (
       <span className="inline-flex items-center gap-1 text-xs text-emerald-700 dark:text-emerald-300 font-medium">
         <Clock className="size-3.5 shrink-0 text-emerald-600" />
-        <span>Active just now</span>
+        <span>{t?.staff.time.activeNow ?? 'Active just now'}</span>
       </span>
     );
   }
@@ -93,7 +93,7 @@ function ActivityTimeIndicator() {
     return (
       <span className="inline-flex items-center gap-1 text-xs text-inactive-foreground font-medium tabular-nums">
         <Clock className="size-3.5 shrink-0 text-inactive-foreground/80" />
-        <span>Inactive for {formattedElapsed}</span>
+        <span>{t?.staff.time.inactiveFor(formattedElapsed) ?? `Inactive for ${formattedElapsed}`}</span>
       </span>
     );
   }
@@ -101,7 +101,7 @@ function ActivityTimeIndicator() {
   return (
     <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
       <Clock className="size-3.5 shrink-0" />
-      <span>No active session</span>
+      <span>{t?.staff.presence.offline ?? 'Waiting for patient'}</span>
     </span>
   );
 }
@@ -110,50 +110,38 @@ function ActivityTimeIndicator() {
 // 3. Connection Status Configuration & Sub-component
 // ============================================================================
 
-interface ConnectionConfig {
-  label: string;
-  badgeClass: string;
-  icon: React.ComponentType<{ className?: string }>;
-}
+function ConnectionStatusBadge({
+  status,
+  t,
+}: {
+  status: RealtimeConnectionStatus;
+  t?: TranslationDictionary;
+}) {
+  let label = 'Disconnected';
+  let badgeClass = 'border-zinc-500/30 bg-zinc-500/10 text-zinc-600 dark:text-zinc-400';
+  let Icon = WifiOff;
 
-const CONNECTION_CONFIGS: Record<RealtimeConnectionStatus, ConnectionConfig> = {
-  CONNECTED: {
-    label: 'Connected (Supabase)',
-    badgeClass:
-      'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
-    icon: Wifi,
-  },
-  FALLBACK_LOCAL: {
-    label: 'Local Fallback (BroadcastChannel)',
-    badgeClass:
-      'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400',
-    icon: Activity,
-  },
-  CONNECTING: {
-    label: 'Connecting...',
-    badgeClass:
-      'border-sky-500/30 bg-sky-500/10 text-sky-600 dark:text-sky-400 animate-pulse',
-    icon: Activity,
-  },
-  DISCONNECTED: {
-    label: 'Disconnected',
-    badgeClass:
-      'border-zinc-500/30 bg-zinc-500/10 text-zinc-600 dark:text-zinc-400',
-    icon: WifiOff,
-  },
-};
-
-function ConnectionStatusBadge({ status }: { status: RealtimeConnectionStatus }) {
-  const config = CONNECTION_CONFIGS[status] ?? CONNECTION_CONFIGS.DISCONNECTED;
-  const Icon = config.icon;
+  if (status === 'CONNECTED') {
+    label = t?.staff.connection.connected ?? 'Connected (Supabase)';
+    badgeClass = 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400';
+    Icon = Wifi;
+  } else if (status === 'FALLBACK_LOCAL') {
+    label = t?.staff.connection.fallback ?? 'Local Fallback (BroadcastChannel)';
+    badgeClass = 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400';
+    Icon = Activity;
+  } else if (status === 'CONNECTING') {
+    label = t?.staff.connection.connecting ?? 'Connecting...';
+    badgeClass = 'border-sky-500/30 bg-sky-500/10 text-sky-600 dark:text-sky-400 animate-pulse';
+    Icon = Activity;
+  }
 
   return (
     <Badge
       variant="outline"
-      className={cn('gap-1.5 font-medium whitespace-nowrap', config.badgeClass)}
+      className={cn('gap-1.5 font-medium whitespace-nowrap', badgeClass)}
     >
       <Icon className="size-3.5 shrink-0" />
-      <span>{config.label}</span>
+      <span>{label}</span>
     </Badge>
   );
 }
@@ -162,15 +150,12 @@ function ConnectionStatusBadge({ status }: { status: RealtimeConnectionStatus })
 // 4. StaffHeader Component
 // ============================================================================
 
-/**
- * Modular Staff Dashboard Header.
- *
- * Encapsulates system title, room status, connection badges, Zero-CLS patient presence badge,
- * elapsed inactivity timer, and state reset actions. Complies with 44px healthcare touch targets.
- */
 export function StaffHeader({
   roomId = DEFAULT_ROOM_ID,
   className,
+  lang = 'th',
+  onLanguageChange,
+  t,
 }: StaffHeaderProps) {
   const patientStatus = usePatientStatus();
   const connectionStatus = useConnectionStatus();
@@ -186,39 +171,46 @@ export function StaffHeader({
       <div className="space-y-1">
         <div className="flex flex-wrap items-center gap-2">
           <h1 className="text-2xl font-bold tracking-tight">
-            Staff Monitoring Dashboard
+            {t?.staff.dashboardTitle ?? 'Staff Monitoring Dashboard'}
           </h1>
           <Badge variant="secondary" className="gap-1 text-xs">
             <Radio className="size-3 text-emerald-500" />
-            <span>Real-Time</span>
+            <span>{t?.staff.realtime ?? 'Real-Time'}</span>
           </Badge>
           <Badge
             variant="outline"
             className="text-xs text-muted-foreground font-mono"
             title={`Active Room: ${roomId}`}
           >
-            Room: {roomId}
+            {t?.staff.room ?? 'Room'}: {roomId}
           </Badge>
         </div>
         <p className="text-sm text-muted-foreground">
-          Live patient intake monitoring and presence synchronization
+          {t?.staff.dashboardSubtitle ?? 'Live patient intake monitoring and presence synchronization'}
         </p>
       </div>
 
       {/* Real-time Status Badges & Controls */}
       <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-        <ConnectionStatusBadge status={connectionStatus} />
+        {onLanguageChange && (
+          <LanguageToggle
+            currentLang={lang}
+            onLanguageChange={onLanguageChange}
+          />
+        )}
+
+        <ConnectionStatusBadge status={connectionStatus} t={t} />
 
         {/* Zero-CLS Status Badge */}
-        <StatusBadge status={patientStatus} />
+        <StatusBadge status={patientStatus} t={t} />
 
-        {/* Inactivity / Activity Duration Indicator (visible on all viewports) */}
+        {/* Inactivity / Activity Duration Indicator */}
         <div className="flex items-center px-2.5 py-1.5 rounded-md bg-muted/40 border text-xs min-h-[36px]">
-          <ActivityTimeIndicator />
+          <ActivityTimeIndicator t={t} />
         </div>
 
-        {/* Next Patient / Clear Session Action (Accessible 44x44px touch target) */}
-        <NextPatientDialog />
+        {/* Next Patient / Clear Session Action */}
+        <NextPatientDialog t={t} />
       </div>
     </header>
   );

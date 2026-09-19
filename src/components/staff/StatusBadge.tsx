@@ -1,6 +1,7 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import type { PatientPresenceStatus } from '@/lib/realtime';
+import { type TranslationDictionary } from '@/lib/i18n/translations';
 
 // ============================================================================
 // 1. Types & Interfaces
@@ -9,39 +10,40 @@ import type { PatientPresenceStatus } from '@/lib/realtime';
 export interface StatusBadgeProps extends React.HTMLAttributes<HTMLDivElement> {
   status: PatientPresenceStatus;
   className?: string;
+  t?: TranslationDictionary;
 }
 
 // ============================================================================
-// 2. Status Configurations (Colors, Labels & Indicator Dots)
+// 2. Status Configurations (Colors & Indicator Dots)
 // ============================================================================
 
 interface StatusConfig {
-  label: string;
+  defaultLabel: string;
   badgeClass: string;
   dotClass: string;
 }
 
 const STATUS_CONFIGS: Record<PatientPresenceStatus, StatusConfig> = {
   typing: {
-    label: 'Actively filling in',
+    defaultLabel: 'Actively filling in',
     badgeClass:
       'border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
     dotClass: 'bg-emerald-500',
   },
   idle: {
-    label: 'Inactive',
+    defaultLabel: 'Inactive',
     badgeClass:
       'border-inactive bg-inactive/30 text-inactive-foreground',
     dotClass: 'bg-inactive-foreground/70',
   },
   submitted: {
-    label: 'Submitted',
+    defaultLabel: 'Submitted',
     badgeClass:
       'border-primary/30 bg-primary/10 text-primary',
     dotClass: 'bg-primary',
   },
   offline: {
-    label: 'Waiting for patient',
+    defaultLabel: 'Waiting for patient',
     badgeClass:
       'border-border bg-muted/60 text-muted-foreground',
     dotClass: 'bg-muted-foreground/50',
@@ -55,16 +57,16 @@ const STATUS_CONFIGS: Record<PatientPresenceStatus, StatusConfig> = {
 /**
  * Zero-CLS Patient Presence Status Badge.
  *
- * Designed with a rock-solid width (`w-[160px] min-w-[160px]`) and centered flex layout
- * to ensure Cumulative Layout Shift (CLS) = 0 during presence transitions between
- * 'typing', 'idle', 'submitted', and 'offline'.
+ * Supports localized status labels and maintains zero layout shift across state changes.
  */
 export function StatusBadge({
   status,
   className,
+  t,
   ...props
 }: StatusBadgeProps) {
   const config = STATUS_CONFIGS[status] ?? STATUS_CONFIGS.offline;
+  const label = t?.staff.presence[status] ?? config.defaultLabel;
 
   return (
     <div
@@ -72,7 +74,7 @@ export function StatusBadge({
       aria-live="polite"
       className={cn(
         // Zero-CLS layout: fixed width, centered content, no layout shifts across states
-        'inline-flex w-[160px] min-w-[160px] items-center justify-center gap-1.5 rounded-full border px-3 py-1',
+        'inline-flex min-w-[155px] items-center justify-center gap-1.5 rounded-full border px-3 py-1',
         'text-xs font-semibold whitespace-nowrap select-none transition-colors duration-150',
         config.badgeClass,
         className
@@ -83,7 +85,7 @@ export function StatusBadge({
         className={cn('size-2 rounded-full shrink-0 transition-colors duration-200', config.dotClass)}
         aria-hidden="true"
       />
-      <span>{config.label}</span>
+      <span>{label}</span>
     </div>
   );
 }

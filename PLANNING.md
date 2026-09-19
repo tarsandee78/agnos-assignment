@@ -102,3 +102,16 @@ sequenceDiagram
    - The data payload is sent through the Supabase channel using the `broadcast` method.
    - *Architecture benefit:* This bypasses the PostgreSQL database entirely, ensuring ultra-low latency client-to-client communication.
 4. **State Update:** The Staff View receives the broadcast event, updates the Zustand `useStaffStore`, and the React UI re-renders only the specific fields instantly to match the patient's screen.
+
+## 6. Production Deployment & Verification (Issue #19)
+
+- **Production Cloud Host:** Vercel
+- **Live URL:** [https://agnos-assignment-nine.vercel.app/](https://agnos-assignment-nine.vercel.app/)
+- **Evaluator Split-Screen:** [https://agnos-assignment-nine.vercel.app/split-view](https://agnos-assignment-nine.vercel.app/split-view)
+
+### Acceptance Criteria Checklist
+- [x] **Mobile & Desktop responsiveness verified:** Tested across 320px, 375px, 768px, 1280px, and 1440px viewports.
+- [x] **Zero console errors:** Verified in Chrome DevTools on local environment and live Vercel deployment.
+- [x] **Vercel live URL documented:** Documented in `README.md` and `PLANNING.md`.
+- [x] **Code Quality & Linting:** `npm run lint` (ESLint 9 Flat Config), `npx tsc --noEmit`, and `npm run build` all pass with 0 errors.
+

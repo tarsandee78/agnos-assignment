@@ -85,7 +85,11 @@ export function FieldDisplay<
   className,
 }: FieldDisplayProps<Section, Field>) {
   // Read value via granular selector if section & field are provided
-  const storeValue = section && field ? usePatientField(section, field) : undefined;
+  const storeValue = useStaffStore((state) => {
+    if (!section || !field) return undefined;
+    const s = state.patientData?.[section] as Record<string, any> | undefined;
+    return s ? (s[field as string] as string | undefined) : undefined;
+  });
   const displayValue = propValue !== undefined ? propValue : storeValue;
 
   const targetField = fieldName ?? (section && field ? `${section}.${String(field)}` : undefined);

@@ -36,78 +36,7 @@ export interface StaffHeaderProps {
 }
 
 // ============================================================================
-// 2. Activity / Inactivity Time Indicator (Isolated Sub-component)
-// ============================================================================
-
-function ActivityTimeIndicator({ t }: { t?: TranslationDictionary }) {
-  const patientStatus = usePatientStatus();
-  const lastFieldChangedAt = useLastFieldChangedAt();
-  const isSubmitted = useStaffStore((s) => s.isSubmitted);
-  const submittedAt = useStaffStore((s) => s.submittedAt);
-
-  const [now, setNow] = useState<number>(Date.now());
-
-  useEffect(() => {
-    // Only tick when in idle state where elapsed seconds must increment live
-    if (patientStatus !== 'idle') {
-      return;
-    }
-
-    const interval = setInterval(() => {
-      setNow(Date.now());
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [patientStatus]);
-
-  if (isSubmitted || patientStatus === 'submitted') {
-    const formattedTime = submittedAt
-      ? new Date(submittedAt).toLocaleTimeString()
-      : 'Just now';
-    return (
-      <span className="inline-flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-        <CheckCircle2 className="size-3.5 shrink-0" />
-        <span>{t?.staff.time.submittedAt(formattedTime) ?? `Submitted at ${formattedTime}`}</span>
-      </span>
-    );
-  }
-
-  if (patientStatus === 'typing') {
-    return (
-      <span className="inline-flex items-center gap-1 text-xs text-emerald-700 dark:text-emerald-300 font-medium">
-        <Clock className="size-3.5 shrink-0 text-emerald-600" />
-        <span>{t?.staff.time.activeNow ?? 'Active just now'}</span>
-      </span>
-    );
-  }
-
-  if (patientStatus === 'idle') {
-    const referenceTime = lastFieldChangedAt ?? now;
-    const elapsedSeconds = Math.max(0, Math.floor((now - referenceTime) / 1000));
-
-    const formattedElapsed =
-      elapsedSeconds < 60
-        ? `${elapsedSeconds}s`
-        : `${Math.floor(elapsedSeconds / 60)}m ${elapsedSeconds % 60}s`;
-
-    return (
-      <span className="inline-flex items-center gap-1 text-xs text-inactive-foreground font-medium tabular-nums">
-        <Clock className="size-3.5 shrink-0 text-inactive-foreground/80" />
-        <span>{t?.staff.time.inactiveFor(formattedElapsed) ?? `Inactive for ${formattedElapsed}`}</span>
-      </span>
-    );
-  }
-
-  return (
-    <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-      <Clock className="size-3.5 shrink-0" />
-      <span>{t?.staff.presence.offline ?? 'Waiting for patient'}</span>
-    </span>
-  );
-}
-
-// ============================================================================
-// 3. Connection Status Configuration & Sub-component
+// 2. Connection Status Configuration & Sub-component
 // ============================================================================
 
 function getConnectionConfig(
@@ -119,12 +48,12 @@ function getConnectionConfig(
     { label: string; badgeClass: string; icon: React.ComponentType<{ className?: string }> }
   > = {
     CONNECTED: {
-      label: t?.staff.connection.connected ?? 'Connected (Supabase)',
+      label: t?.staff.connection.connected ?? 'Connected',
       badgeClass: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
       icon: Wifi,
     },
     FALLBACK_LOCAL: {
-      label: t?.staff.connection.fallback ?? 'Local Fallback (BroadcastChannel)',
+      label: t?.staff.connection.fallback ?? 'Local Fallback',
       badgeClass: 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400',
       icon: Activity,
     },
@@ -155,7 +84,7 @@ function ConnectionStatusBadge({
   return (
     <Badge
       variant="outline"
-      className={cn('gap-1.5 font-medium whitespace-nowrap', config.badgeClass)}
+      className={cn('h-9 px-3 gap-1.5 font-medium whitespace-nowrap text-xs select-none', config.badgeClass)}
     >
       <Icon className="size-3.5 shrink-0" />
       <span>{config.label}</span>
@@ -164,7 +93,7 @@ function ConnectionStatusBadge({
 }
 
 // ============================================================================
-// 4. StaffHeader Component
+// 3. StaffHeader Component
 // ============================================================================
 
 export function StaffHeader({
@@ -176,11 +105,26 @@ export function StaffHeader({
 }: StaffHeaderProps) {
   const patientStatus = usePatientStatus();
   const connectionStatus = useConnectionStatus();
+  const lastFieldChangedAt = useLastFieldChangedAt();
+  const isSubmitted = useStaffStore((s) => s.isSubmitted);
+  const submittedAt = useStaffStore((s) => s.submittedAt);
+
+  const [now, setNow] = useState<number>(Date.now());
+
+  useEffect(() => {
+    if (patientStatus !== 'idle') return;
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, [patientStatus]);
+
+  const referenceTime = lastFieldChangedAt ?? now;
+  const elapsedSeconds = Math.max(0, Math.floor((now - referenceTime) / 1000));
+  const effectiveStatus = isSubmitted ? 'submitted' : patientStatus;
 
   return (
     <header
       className={cn(
-        'flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b pb-5',
+        'flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between border-b pb-5',
         className
       )}
     >
@@ -207,8 +151,8 @@ export function StaffHeader({
         </p>
       </div>
 
-      {/* Real-time Status Badges & Controls */}
-      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+      {/* Real-time Status Badges & Controls (Unified Single Row on Desktop) */}
+      <div className="flex flex-wrap lg:flex-nowrap items-center gap-2 sm:gap-2.5 shrink-0">
         {onLanguageChange && (
           <LanguageToggle
             currentLang={lang}
@@ -218,13 +162,13 @@ export function StaffHeader({
 
         <ConnectionStatusBadge status={connectionStatus} t={t} />
 
-        {/* Zero-CLS Status Badge */}
-        <StatusBadge status={patientStatus} t={t} />
-
-        {/* Inactivity / Activity Duration Indicator */}
-        <div className="flex items-center px-2.5 py-1.5 rounded-md bg-muted/40 border text-xs min-h-[36px]">
-          <ActivityTimeIndicator t={t} />
-        </div>
+        {/* Consolidated Zero-CLS Status Badge with integrated elapsed time */}
+        <StatusBadge
+          status={effectiveStatus}
+          elapsedSeconds={elapsedSeconds}
+          submittedAt={submittedAt}
+          t={t}
+        />
 
         {/* Next Patient / Clear Session Action */}
         <NextPatientDialog t={t} />

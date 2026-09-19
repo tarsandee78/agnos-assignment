@@ -111,7 +111,7 @@ export const translations = {
       unexpected: 'เกิดข้อผิดพลาดที่ไม่คาดคิด กรุณาลองใหม่อีกครั้ง',
     },
     staff: {
-      dashboardTitle: 'ระบบติดตามข้อมูลคนไข้แบบ Real-Time',
+      dashboardTitle: 'ระบบติดตามข้อมูลคนไข้',
       dashboardSubtitle: 'ติดตามการกรอกข้อมูลของคนไข้และสถานะการเชื่อมต่อแบบสด',
       room: 'ห้อง',
       realtime: 'สด (Real-Time)',
@@ -121,21 +121,21 @@ export const translations = {
       submittedAt: 'ส่งเมื่อเวลา',
       prepareNext: 'เตรียมรับคนไข้ถัดไป',
       connection: {
-        connected: 'เชื่อมต่อแล้ว (Supabase)',
-        fallback: 'โหมดสำรองในเครื่อง (BroadcastChannel)',
+        connected: 'เชื่อมต่อแล้ว',
+        fallback: 'โหมดสำรอง (Local)',
         connecting: 'กำลังเชื่อมต่อ...',
-        disconnected: 'ขาดการเชื่อมต่อ',
+        disconnected: 'ไม่ได้เชื่อมต่อ',
       },
       presence: {
-        typing: 'กำลังพิมพ์กรอกข้อมูล',
-        idle: 'หยุดพักชั่วคราว',
+        typing: 'กำลังกรอกข้อมูล',
+        idle: 'ไม่มีการเคลื่อนไหว',
         submitted: 'ส่งข้อมูลแล้ว',
         offline: 'รอคนไข้เริ่มกรอก',
       },
       time: {
-        activeNow: 'เพิ่งมีการเคลื่อนไหว',
-        inactiveFor: (time: string) => `หยุดนิ่งมาแล้ว ${time}`,
-        submittedAt: (time: string) => `ส่งเมื่อ ${time}`,
+        activeNow: 'กำลังกรอกข้อมูล',
+        inactiveFor: (time: string) => `ไม่มีการเคลื่อนไหว (${time})`,
+        submittedAt: (time: string) => `ส่งข้อมูลแล้ว (${time})`,
       },
       cards: {
         step1Title: 'ข้อมูลส่วนตัว',
@@ -281,8 +281,8 @@ export const translations = {
       submittedAt: 'Submitted at',
       prepareNext: 'Prepare Next Patient',
       connection: {
-        connected: 'Connected (Supabase)',
-        fallback: 'Local Fallback (BroadcastChannel)',
+        connected: 'Connected',
+        fallback: 'Local Fallback',
         connecting: 'Connecting...',
         disconnected: 'Disconnected',
       },
@@ -293,9 +293,9 @@ export const translations = {
         offline: 'Waiting for patient',
       },
       time: {
-        activeNow: 'Active just now',
-        inactiveFor: (time: string) => `Inactive for ${time}`,
-        submittedAt: (time: string) => `Submitted at ${time}`,
+        activeNow: 'Actively filling in',
+        inactiveFor: (time: string) => `Inactive (${time})`,
+        submittedAt: (time: string) => `Submitted (${time})`,
       },
       cards: {
         step1Title: 'Personal Details',

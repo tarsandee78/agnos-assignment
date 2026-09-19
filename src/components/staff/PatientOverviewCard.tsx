@@ -122,35 +122,55 @@ function StepCardHeader({
 
   return (
     <CardHeader className="border-b border-border/60 p-4 sm:p-5 h-[96px] min-h-[96px] flex flex-col justify-center">
-      <div className="flex items-center justify-between gap-2.5">
-        <div className="flex items-center gap-2.5 min-w-0 flex-1">
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground">
-            <Icon className="size-4" aria-hidden="true" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <CardTitle className="text-sm sm:text-base font-bold tracking-tight text-foreground truncate">
-                {stepNumber}. {title}
-              </CardTitle>
-              {isActive && (
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-primary/15 text-primary border border-primary/30 uppercase tracking-wider shrink-0">
-                  {activeBadgeText}
-                </span>
-              )}
-            </div>
-            <CardDescription className="text-xs text-muted-foreground mt-0.5 truncate">
-              {subtitle}
-            </CardDescription>
-          </div>
+      <div className="flex items-start gap-3">
+        <div
+          className={cn(
+            'relative flex size-9 shrink-0 items-center justify-center rounded-lg transition-colors mt-0.5',
+            isActive
+              ? 'bg-primary/10 text-primary ring-2 ring-primary/30'
+              : 'bg-muted text-muted-foreground'
+          )}
+        >
+          <Icon className="size-4" aria-hidden="true" />
+          {isActive && (
+            <span className="absolute -top-1 -right-1 flex size-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+              <span className="relative inline-flex rounded-full size-2.5 bg-primary ring-2 ring-card" />
+            </span>
+          )}
         </div>
 
-        <Badge
-          variant="outline"
-          className={cn('text-[11px] gap-1 py-0.5 px-2 font-medium shrink-0', completeness.badgeClass)}
-        >
-          <CompletenessIcon className="size-3 shrink-0" />
-          <span>{completeness.label}</span>
-        </Badge>
+        <div className="min-w-0 flex-1 space-y-1">
+          {/* Row 1: Step Title & Completeness Badge */}
+          <div className="flex items-center justify-between gap-2">
+            <CardTitle className="text-sm sm:text-base font-bold tracking-tight text-foreground truncate">
+              {stepNumber}. {title}
+            </CardTitle>
+
+            <Badge
+              variant="outline"
+              className={cn(
+                'text-[11px] gap-1 py-0.5 px-2 font-medium shrink-0 whitespace-nowrap',
+                completeness.badgeClass
+              )}
+            >
+              <CompletenessIcon className="size-3 shrink-0" />
+              <span>{completeness.label}</span>
+            </Badge>
+          </div>
+
+          {/* Row 2: Subtitle & Active Indicator */}
+          <div className="flex items-center gap-1.5 min-w-0">
+            <CardDescription className="text-xs text-muted-foreground truncate">
+              {subtitle}
+            </CardDescription>
+            {isActive && (
+              <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold bg-primary/15 text-primary border border-primary/30 uppercase tracking-wider shrink-0">
+                {activeBadgeText}
+              </span>
+            )}
+          </div>
+        </div>
       </div>
     </CardHeader>
   );

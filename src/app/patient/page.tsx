@@ -75,10 +75,9 @@ export default function PatientPage() {
   // Stepper navigation with validation guard
   const handleStepClick = async (targetStep: PatientFormStep) => {
     if (targetStep === currentStep) return;
-    setStepDirection(targetStep > currentStep ? "forward" : "backward");
     // Allow stepping back to previous completed steps freely
     if (targetStep < currentStep) {
-      setCurrentStep(targetStep);
+      handleGoToStep(targetStep);
       return;
     }
     // Advancing forward requires validation of previous steps
@@ -86,18 +85,18 @@ export default function PatientPage() {
       const isPersonalValid = await trigger("personal");
       if (!isPersonalValid) return;
       if (targetStep === 2) {
-        setCurrentStep(2);
+        handleGoToStep(2);
       } else if (targetStep === 3) {
         const isContactValid = await trigger("contact");
         if (isContactValid) {
-          setCurrentStep(3);
+          handleGoToStep(3);
         }
       }
     } else if (currentStep === 2) {
       if (targetStep === 3) {
         const isContactValid = await trigger("contact");
         if (isContactValid) {
-          setCurrentStep(3);
+          handleGoToStep(3);
         }
       }
     }
@@ -226,10 +225,10 @@ export default function PatientPage() {
         <div
           key={currentStep}
           className={cn(
-            "w-full",
+            "w-full motion-reduce:animate-none motion-reduce:transform-none",
             stepDirection === "forward"
-              ? "animate-in fade-in-40 slide-in-from-right-4 duration-250 ease-out"
-              : "animate-in fade-in-40 slide-in-from-left-4 duration-250 ease-out"
+              ? "animate-in fade-in-40 slide-in-from-right-4 duration-300 ease-out"
+              : "animate-in fade-in-40 slide-in-from-left-4 duration-300 ease-out"
           )}
         >
           {currentStep === 1 && (

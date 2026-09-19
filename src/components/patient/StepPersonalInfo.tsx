@@ -170,6 +170,7 @@ export function StepPersonalInfo({
               maxLength={50}
               placeholder={t.personal.firstNamePlaceholder}
               autoComplete="given-name"
+              aria-required="true"
               aria-invalid={Boolean(personalErrors?.firstName)}
               aria-describedby={
                 personalErrors?.firstName ? "firstName-error" : undefined
@@ -225,6 +226,7 @@ export function StepPersonalInfo({
               maxLength={50}
               placeholder={t.personal.lastNamePlaceholder}
               autoComplete="family-name"
+              aria-required="true"
               aria-invalid={Boolean(personalErrors?.lastName)}
               aria-describedby={
                 personalErrors?.lastName ? "lastName-error" : undefined
@@ -253,6 +255,7 @@ export function StepPersonalInfo({
               type="date"
               max={todayString}
               autoComplete="bday"
+              aria-required="true"
               aria-invalid={Boolean(personalErrors?.dateOfBirth)}
               aria-describedby={
                 personalErrors?.dateOfBirth ? "dateOfBirth-error" : undefined
@@ -381,6 +384,7 @@ export function StepPersonalInfo({
               defaultValue="Thai"
               placeholder={t.personal.nationalityPlaceholder}
               autoComplete="country-name"
+              aria-required="true"
               aria-invalid={Boolean(personalErrors?.nationality)}
               aria-describedby={
                 personalErrors?.nationality ? "nationality-error" : undefined

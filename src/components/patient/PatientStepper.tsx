@@ -9,8 +9,6 @@ import { translations, type Language, type TranslationDictionary } from "@/lib/i
 export interface StepItem {
   step: PatientFormStep;
   label: string;
-  shortLabel: string;
-  description: string;
 }
 
 export interface PatientStepperProps {
@@ -42,20 +40,14 @@ export function PatientStepper({
       {
         step: 1,
         label: t.steps.step1Title,
-        shortLabel: t.steps.step1Title,
-        description: t.steps.step1Desc,
       },
       {
         step: 2,
         label: t.steps.step2Title,
-        shortLabel: t.steps.step2Title,
-        description: t.steps.step2Desc,
       },
       {
         step: 3,
         label: t.steps.step3Title,
-        shortLabel: t.steps.step3Title,
-        description: t.steps.step3Desc,
       },
     ],
     [t]
@@ -143,7 +135,7 @@ export function PatientStepper({
                   className={cn(
                     "w-full flex flex-col items-center text-center touch-target min-h-[44px] p-1 rounded-xl transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 z-10",
                     isClickable
-                      ? "cursor-pointer active:scale-98 hover:opacity-90"
+                      ? "cursor-pointer active:scale-[0.98] hover:opacity-90"
                       : "cursor-default"
                   )}
                 >

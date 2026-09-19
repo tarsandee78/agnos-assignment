@@ -214,6 +214,9 @@ export function StepEmergencyReview({
               <Label htmlFor="contactName" className="text-sm font-medium">
                 {t.emergency.contactName}
               </Label>
+              <span className="text-xs text-muted-foreground font-normal">
+                {t.common.optional}
+              </span>
             </div>
             <Input
               id="contactName"
@@ -235,6 +238,9 @@ export function StepEmergencyReview({
               <Label htmlFor="contactPhone" className="text-sm font-medium">
                 {t.emergency.emergencyPhone}
               </Label>
+              <span className="text-xs text-muted-foreground font-normal">
+                {t.common.optional}
+              </span>
             </div>
             <Controller
               control={control}
@@ -266,6 +272,9 @@ export function StepEmergencyReview({
             <Label htmlFor="relationship" className="text-sm font-medium">
               {t.emergency.relationship}
             </Label>
+            <span className="text-xs text-muted-foreground font-normal">
+              {t.common.optional}
+            </span>
           </div>
           <Input
             id="relationship"

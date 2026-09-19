@@ -36,14 +36,6 @@ export interface StepPersonalInfoProps {
   t?: TranslationDictionary;
 }
 
-function RequiredIndicator() {
-  return (
-    <span className="text-destructive font-semibold ml-0.5" aria-hidden="true">
-      *
-    </span>
-  );
-}
-
 interface FieldErrorProps {
   error?: string;
   id?: string;
@@ -144,16 +136,19 @@ export function StepPersonalInfo({
   return (
     <div className={cn("w-full bg-card rounded-2xl border border-border/80 p-6 sm:p-8 shadow-xs", className)}>
       {/* Header */}
-      <div className="flex items-center gap-3 border-b border-border/60 pb-5 mb-6">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+      <div className="flex items-start sm:items-center gap-3 border-b border-border/60 pb-5 mb-6">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary mt-0.5 sm:mt-0">
           <User className="size-5" aria-hidden="true" />
         </div>
-        <div>
+        <div className="flex-1 min-w-0">
           <h2 className="text-lg sm:text-xl font-bold text-foreground tracking-tight">
             {t.steps.step1Title}
           </h2>
           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
             {t.steps.step1Desc}
+          </p>
+          <p className="text-xs text-muted-foreground/90 mt-1">
+            {t.common.fillRequiredHint}
           </p>
         </div>
       </div>
@@ -166,7 +161,7 @@ export function StepPersonalInfo({
           <div className="space-y-2">
             <div className="flex items-center justify-between min-h-[26px]">
               <Label htmlFor="firstName" className="text-sm font-medium">
-                {t.personal.firstName} <RequiredIndicator />
+                {t.personal.firstName}
               </Label>
             </div>
             <Input
@@ -221,7 +216,7 @@ export function StepPersonalInfo({
           <div className="space-y-2">
             <div className="flex items-center justify-between min-h-[26px]">
               <Label htmlFor="lastName" className="text-sm font-medium">
-                {t.personal.lastName} <RequiredIndicator />
+                {t.personal.lastName}
               </Label>
             </div>
             <Input
@@ -250,7 +245,7 @@ export function StepPersonalInfo({
           <div className="space-y-2">
             <div className="flex items-center justify-between min-h-[26px]">
               <Label htmlFor="dateOfBirth" className="text-sm sm:text-base font-medium text-foreground">
-                {t.personal.dateOfBirth} <RequiredIndicator />
+                {t.personal.dateOfBirth}
               </Label>
             </div>
             <Input
@@ -275,7 +270,7 @@ export function StepPersonalInfo({
           <div className="space-y-2">
             <div className="flex items-center justify-between min-h-[26px]">
               <Label htmlFor="gender" className="text-sm sm:text-base font-medium text-foreground">
-                {t.personal.gender} <RequiredIndicator />
+                {t.personal.gender}
               </Label>
             </div>
             <Controller
@@ -327,7 +322,7 @@ export function StepPersonalInfo({
           <div className="space-y-2">
             <div className="flex items-center justify-between min-h-[26px]">
               <Label htmlFor="preferredLanguage" className="text-sm font-medium">
-                {t.personal.preferredLanguage} <RequiredIndicator />
+                {t.personal.preferredLanguage}
               </Label>
             </div>
             <Controller
@@ -376,7 +371,7 @@ export function StepPersonalInfo({
           <div className="space-y-2">
             <div className="flex items-center justify-between min-h-[26px]">
               <Label htmlFor="nationality" className="text-sm font-medium">
-                {t.personal.nationality} <RequiredIndicator />
+                {t.personal.nationality}
               </Label>
             </div>
             <Input
@@ -455,14 +450,11 @@ export function StepPersonalInfo({
       </div>
 
       {/* Navigation Footer */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 mt-8 border-t border-border/60">
-        <p className="text-xs text-muted-foreground order-2 sm:order-1 text-center sm:text-left">
-          {t.common.required} = {t.common.requiredNote}
-        </p>
+      <div className="flex items-center justify-end pt-6 mt-8 border-t border-border/60">
         <Button
           type="button"
           onClick={handleNext}
-          className="order-1 sm:order-2 w-full sm:w-auto min-h-[44px] h-11 px-6 font-semibold text-base touch-target group shadow-xs cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90"
+          className="w-full sm:w-auto min-h-[44px] h-11 px-6 font-semibold text-base touch-target group shadow-xs cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.98] transition-all"
         >
           <span>{t.common.next}: {t.steps.step2Title}</span>
           <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5 ml-1.5" aria-hidden="true" />

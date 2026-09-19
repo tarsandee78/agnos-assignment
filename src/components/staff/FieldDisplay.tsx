@@ -187,9 +187,9 @@ export function FieldDisplay<
           <div className="flex items-center gap-2 h-6 select-none" aria-label="Typing input...">
             <div className="h-4 w-24 sm:w-28 rounded bg-primary/20 animate-pulse" />
             <span className="inline-flex gap-1 items-center">
-              <span className="size-1.5 rounded-full bg-primary animate-bounce [animation-delay:-0.3s]" />
-              <span className="size-1.5 rounded-full bg-primary animate-bounce [animation-delay:-0.15s]" />
-              <span className="size-1.5 rounded-full bg-primary animate-bounce" />
+              <span className="size-1.5 rounded-full bg-primary animate-pulse [animation-delay:-0.3s]" />
+              <span className="size-1.5 rounded-full bg-primary animate-pulse [animation-delay:-0.15s]" />
+              <span className="size-1.5 rounded-full bg-primary animate-pulse" />
             </span>
           </div>
         ) : (

@@ -37,14 +37,6 @@ export interface StepContactInfoProps {
   t?: TranslationDictionary;
 }
 
-function RequiredIndicator() {
-  return (
-    <span className="text-destructive font-semibold ml-0.5" aria-hidden="true">
-      *
-    </span>
-  );
-}
-
 interface FieldErrorProps {
   error?: string;
   id?: string;
@@ -133,7 +125,6 @@ export function StepContactInfo({
               <Label htmlFor="phoneNumber" className="text-sm font-medium flex items-center gap-1.5">
                 <Phone className="size-3.5 text-muted-foreground" aria-hidden="true" />
                 <span>{t.contact.phoneNumber}</span>
-                <RequiredIndicator />
               </Label>
             </div>
             <Controller
@@ -180,7 +171,6 @@ export function StepContactInfo({
               <Label htmlFor="email" className="text-sm font-medium flex items-center gap-1.5">
                 <Mail className="size-3.5 text-muted-foreground" aria-hidden="true" />
                 <span>{t.contact.email}</span>
-                <RequiredIndicator />
               </Label>
             </div>
             <Input
@@ -212,7 +202,6 @@ export function StepContactInfo({
             <Label htmlFor="address" className="text-sm font-medium flex items-center gap-1.5">
               <MapPin className="size-3.5 text-muted-foreground" aria-hidden="true" />
               <span>{t.contact.address}</span>
-              <RequiredIndicator />
             </Label>
             <span
               className={cn(
@@ -256,7 +245,7 @@ export function StepContactInfo({
           type="button"
           variant="outline"
           onClick={onBack}
-          className="w-full sm:w-auto min-h-[44px] h-11 px-5 font-medium text-base touch-target cursor-pointer hover:bg-muted"
+          className="w-full sm:w-auto min-h-[44px] h-11 px-5 font-medium text-base touch-target cursor-pointer hover:bg-muted active:scale-[0.98] transition-all"
         >
           <ArrowLeft className="size-4 mr-2" aria-hidden="true" />
           <span>{t.common.back}: {t.steps.step1Title}</span>
@@ -265,7 +254,7 @@ export function StepContactInfo({
         <Button
           type="button"
           onClick={handleNext}
-          className="w-full sm:w-auto min-h-[44px] h-11 px-6 font-semibold text-base touch-target group shadow-xs cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90"
+          className="w-full sm:w-auto min-h-[44px] h-11 px-6 font-semibold text-base touch-target group shadow-xs cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.98] transition-all"
         >
           <span>{t.common.next}: {t.steps.step3Title}</span>
           <ArrowRight className="size-4 ml-1.5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />

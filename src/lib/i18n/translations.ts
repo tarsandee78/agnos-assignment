@@ -21,6 +21,7 @@ export const translations = {
       edit: 'แก้ไข',
       close: 'ปิด',
       requiredNote: 'จำเป็นต้องระบุ',
+      fillRequiredHint: 'กรุณากรอกข้อมูลในช่องที่จำเป็น (ช่องที่มีคำว่า "ไม่บังคับ" สามารถเว้นได้)',
     },
     nav: {
       brand: 'Agnos Health',
@@ -186,6 +187,7 @@ export const translations = {
       edit: 'Edit',
       close: 'Close',
       requiredNote: 'Required',
+      fillRequiredHint: 'Please fill in required fields (fields marked "Optional" can be left blank)',
     },
     nav: {
       brand: 'Agnos Health',

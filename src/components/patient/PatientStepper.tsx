@@ -179,9 +179,6 @@ export function PatientStepper({
                     >
                       <span>{item.label}</span>
                     </span>
-                    <span className="hidden md:inline-block text-[11px] text-muted-foreground mt-0.5 truncate max-w-[180px]">
-                      {item.description}
-                    </span>
                   </span>
                 </button>
               </li>

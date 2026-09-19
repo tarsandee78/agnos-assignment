@@ -335,7 +335,7 @@ export function StepEmergencyReview({
           variant="outline"
           disabled={isSubmitting}
           onClick={onBack}
-          className="w-full sm:w-auto min-h-[44px] h-11 px-5 font-medium text-base touch-target cursor-pointer hover:bg-muted"
+          className="w-full sm:w-auto min-h-[44px] h-11 px-5 font-medium text-base touch-target cursor-pointer hover:bg-muted active:scale-[0.98] transition-all"
         >
           <ArrowLeft className="size-4 mr-2" aria-hidden="true" />
           <span>{t.common.back}: {t.steps.step2Title}</span>
@@ -345,7 +345,7 @@ export function StepEmergencyReview({
           type="button"
           disabled={isSubmitting}
           onClick={onSubmit}
-          className="w-full sm:w-auto min-h-[44px] h-11 px-7 font-bold text-base touch-target group shadow-xs cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90 transition-all"
+          className="w-full sm:w-auto min-h-[44px] h-11 px-7 font-bold text-base touch-target group shadow-xs cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.98] transition-all"
         >
           {isSubmitting ? (
             <>
@@ -354,7 +354,7 @@ export function StepEmergencyReview({
             </>
           ) : (
             <>
-              <Send className="size-4 mr-2 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+              <Send className="size-4 mr-2 transition-transform group-hover:translate-x-0.5 ml-1.5" aria-hidden="true" />
               <span>{t.common.submit}</span>
             </>
           )}

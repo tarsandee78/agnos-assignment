@@ -123,10 +123,10 @@ export function FieldDisplay<
       data-field-name={targetField}
       className={cn(
         // Zero-CLS layout: constant padding and border dimensions
-        'relative rounded-lg border px-3 py-2.5 transition-all duration-700 ease-out',
+        'relative rounded-lg border px-3 py-2.5 transition-colors duration-300 ease-out',
         isGlowing
-          ? 'border-emerald-500/60 bg-emerald-500/12 text-emerald-950 dark:text-emerald-50 ring-2 ring-emerald-500/25 shadow-[0_0_14px_rgba(16,185,129,0.22)]'
-          : 'border-border/50 bg-muted/25 text-foreground hover:bg-muted/40',
+          ? 'border-emerald-500/40 bg-emerald-500/8 text-foreground'
+          : 'border-border/60 bg-muted/20 text-foreground hover:bg-muted/30',
         className
       )}
     >
@@ -141,9 +141,9 @@ export function FieldDisplay<
           <span
             role="status"
             aria-live="polite"
-            className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 animate-pulse shrink-0"
+            className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 dark:text-emerald-300 shrink-0 transition-opacity duration-200"
           >
-            <span className="size-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
+            <span className="size-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400" aria-hidden="true" />
             <span>Updated</span>
           </span>
         )}

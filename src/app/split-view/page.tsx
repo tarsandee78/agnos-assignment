@@ -10,7 +10,6 @@ import {
   Monitor,
   RotateCw,
   ExternalLink,
-  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -99,23 +98,23 @@ export default function SplitViewPage() {
                 {connectionStatus === "CONNECTED" ? (
                   <Badge
                     variant="outline"
-                    className="text-[10px] py-0 px-1.5 h-5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hidden sm:flex items-center gap-1 font-medium"
+                    className="text-[10px] py-0 px-1.5 h-5 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 hidden sm:flex items-center gap-1 font-medium"
                   >
-                    <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="size-1.5 rounded-full bg-emerald-500" />
                     <span>Realtime Room</span>
                   </Badge>
                 ) : connectionStatus === "FALLBACK_LOCAL" ? (
                   <Badge
                     variant="outline"
-                    className="text-[10px] py-0 px-1.5 h-5 bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 hidden sm:flex items-center gap-1 font-medium"
+                    className="text-[10px] py-0 px-1.5 h-5 bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30 hidden sm:flex items-center gap-1 font-medium"
                   >
-                    <span className="size-1.5 rounded-full bg-amber-500 animate-pulse" />
+                    <span className="size-1.5 rounded-full bg-amber-500" />
                     <span>Local Fallback</span>
                   </Badge>
                 ) : (
                   <Badge
                     variant="outline"
-                    className="text-[10px] py-0 px-1.5 h-5 bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30 hidden sm:flex items-center gap-1 font-medium"
+                    className="text-[10px] py-0 px-1.5 h-5 bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/30 hidden sm:flex items-center gap-1 font-medium"
                   >
                     <span className="size-1.5 rounded-full bg-blue-500 animate-pulse" />
                     <span>Connecting...</span>
@@ -235,19 +234,19 @@ export default function SplitViewPage() {
         </div>
       </header>
 
-      {/* Evaluator Quick Hint Bar */}
+      {/* Evaluator Testing Guide Banner */}
       {showTip && (
-        <div className="bg-primary/5 border-b border-primary/15 px-3 sm:px-4 py-1.5 flex items-center justify-between text-xs text-primary shrink-0 transition-all">
-          <div className="flex items-center gap-1.5 sm:gap-2 overflow-hidden">
-            <Sparkles className="size-3.5 shrink-0" />
+        <div className="bg-muted/40 border-b border-border/70 px-3 sm:px-4 py-1.5 flex items-center justify-between text-xs text-muted-foreground shrink-0 transition-all">
+          <div className="flex items-center gap-2 overflow-hidden">
+            <span className="font-semibold text-foreground">Live Sync Testing:</span>
             <span className="truncate">
-              <strong>Tip:</strong> Type in Patient form to see live keystroke mirroring on Staff monitor!
+              Type in the Patient form to observe peer-to-peer keystroke streaming and presence tracking on the Staff monitor.
             </span>
           </div>
           <button
             type="button"
             onClick={() => setShowTip(false)}
-            className="min-h-[44px] px-2 text-xs text-muted-foreground hover:text-foreground ml-2 shrink-0 touch-target flex items-center font-medium"
+            className="min-h-[44px] px-2 text-xs text-muted-foreground hover:text-foreground ml-2 shrink-0 touch-target flex items-center font-medium cursor-pointer"
             title="Dismiss tip"
           >
             Dismiss

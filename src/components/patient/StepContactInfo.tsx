@@ -20,14 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
+
 
 export interface StepContactInfoProps {
   /** React Hook Form instance for PatientFormData */
@@ -108,26 +101,24 @@ export function StepContactInfo({
   };
 
   return (
-    <Card className={cn("w-full shadow-xs border-border/80", className)}>
+    <div className={cn("w-full bg-card rounded-2xl border border-border/80 p-6 sm:p-8 shadow-xs", className)}>
       {/* Header */}
-      <CardHeader className="border-b border-border/60 pb-4">
-        <div className="flex items-center gap-2.5">
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <Phone className="size-5" aria-hidden="true" />
-          </div>
-          <div>
-            <CardTitle className="text-lg sm:text-xl font-bold text-foreground">
-              Contact & Address
-            </CardTitle>
-            <CardDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-              ข้อมูลติดต่อและที่อยู่ปัจจุบัน เพื่อการติดต่อและการส่งเอกสารทางการแพทย์
-            </CardDescription>
-          </div>
+      <div className="flex items-center gap-3 border-b border-border/60 pb-5 mb-6">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <Phone className="size-5" aria-hidden="true" />
         </div>
-      </CardHeader>
+        <div>
+          <h2 className="text-lg sm:text-xl font-bold text-foreground tracking-tight">
+            Contact & Address
+          </h2>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+            ข้อมูลติดต่อและที่อยู่ปัจจุบัน เพื่อการติดต่อและการส่งเอกสารทางการแพทย์
+          </p>
+        </div>
+      </div>
 
       {/* Form Content */}
-      <CardContent className="space-y-6 pt-6">
+      <div className="space-y-6">
         {/* Section 1: Phone Number & Email */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {/* Phone Number with Auto-Formatting */}
@@ -247,10 +238,10 @@ export function StepContactInfo({
             error={contactErrors?.address?.message}
           />
         </div>
-      </CardContent>
+      </div>
 
       {/* Navigation Footer */}
-      <CardFooter className="flex flex-col-reverse sm:flex-row items-center justify-between gap-3 pt-6 border-t border-border/60">
+      <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-4 pt-6 mt-8 border-t border-border/60">
         <Button
           type="button"
           variant="outline"
@@ -261,17 +252,15 @@ export function StepContactInfo({
           <span>Back: Personal Details</span>
         </Button>
 
-        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-          <Button
-            type="button"
-            onClick={handleNext}
-            className="w-full sm:w-auto min-h-[44px] h-11 px-6 font-medium text-base touch-target group shadow-sm cursor-pointer"
-          >
-            <span>Next: Emergency Contact</span>
-            <ArrowRight className="size-4 ml-1 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
-          </Button>
-        </div>
-      </CardFooter>
-    </Card>
+        <Button
+          type="button"
+          onClick={handleNext}
+          className="w-full sm:w-auto min-h-[44px] h-11 px-6 font-semibold text-base touch-target group shadow-xs cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90"
+        >
+          <span>Next: Emergency & Review</span>
+          <ArrowRight className="size-4 ml-1.5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+        </Button>
+      </div>
+    </div>
   );
 }

@@ -19,37 +19,32 @@ interface StatusConfig {
   label: string;
   badgeClass: string;
   dotClass: string;
-  hasPing?: boolean;
 }
 
 const STATUS_CONFIGS: Record<PatientPresenceStatus, StatusConfig> = {
   typing: {
     label: 'Actively filling in',
     badgeClass:
-      'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+      'border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
     dotClass: 'bg-emerald-500',
-    hasPing: true,
   },
   idle: {
     label: 'Inactive',
     badgeClass:
-      'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400',
-    dotClass: 'bg-amber-500',
-    hasPing: false,
+      'border-slate-300/70 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300',
+    dotClass: 'bg-slate-400 dark:bg-slate-500',
   },
   submitted: {
     label: 'Submitted',
     badgeClass:
       'border-primary/30 bg-primary/10 text-primary',
     dotClass: 'bg-primary',
-    hasPing: false,
   },
   offline: {
     label: 'Waiting for patient',
     badgeClass:
-      'border-zinc-300 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400',
-    dotClass: 'bg-zinc-400 dark:bg-zinc-500',
-    hasPing: false,
+      'border-border bg-muted/60 text-muted-foreground',
+    dotClass: 'bg-muted-foreground/50',
   },
 };
 
@@ -84,17 +79,10 @@ export function StatusBadge({
       )}
       {...props}
     >
-      <span className="relative flex size-2 shrink-0 items-center justify-center" aria-hidden="true">
-        {config.hasPing && (
-          <span
-            className={cn(
-              'absolute inline-flex size-full animate-ping rounded-full opacity-75',
-              config.dotClass
-            )}
-          />
-        )}
-        <span className={cn('relative inline-flex size-2 rounded-full', config.dotClass)} />
-      </span>
+      <span
+        className={cn('size-2 rounded-full shrink-0 transition-colors duration-200', config.dotClass)}
+        aria-hidden="true"
+      />
       <span>{config.label}</span>
     </div>
   );

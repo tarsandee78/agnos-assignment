@@ -24,14 +24,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
+
 
 export interface StepEmergencyReviewProps {
   form: UseFormReturn<PatientFormData, any, any>;
@@ -44,10 +37,10 @@ export interface StepEmergencyReviewProps {
 }
 
 const GENDER_LABELS: Record<string, string> = {
-  male: "Male (ชาย)",
-  female: "Female (หญิง)",
-  other: "Other (อื่นๆ)",
-  prefer_not_to_say: "Prefer not to say (ไม่ประสงค์ระบุ)",
+  male: "Male / ชาย",
+  female: "Female / หญิง",
+  other: "Other / อื่นๆ",
+  prefer_not_to_say: "Not specified / ไม่ประสงค์ระบุ",
 };
 
 function FieldError({ error, id }: { error?: string; id?: string }) {
@@ -81,9 +74,9 @@ function SummarySection({
   items: SummaryItem[];
 }) {
   return (
-    <div className="rounded-xl border border-border/70 bg-card p-4 space-y-2.5 text-xs sm:text-sm shadow-2xs">
-      <div className="flex items-center justify-between border-b border-border/50 pb-2">
-        <div className="flex items-center gap-2 font-bold text-foreground">
+    <div className="rounded-xl border border-border/60 bg-muted/20 p-4 sm:p-5 space-y-3 text-xs sm:text-sm">
+      <div className="flex items-center justify-between border-b border-border/50 pb-2.5">
+        <div className="flex items-center gap-2 font-semibold text-foreground">
           <Icon className="size-4 text-primary" aria-hidden="true" />
           <span>{title}</span>
         </div>
@@ -96,7 +89,7 @@ function SummarySection({
             className="min-h-[44px] min-w-[44px] h-11 px-3 text-xs sm:text-sm text-primary font-semibold hover:bg-primary/10 touch-target cursor-pointer"
             aria-label={`Edit ${title}`}
           >
-            <Edit3 className="size-4 mr-1.5" aria-hidden="true" />
+            <Edit3 className="size-3.5 mr-1.5" aria-hidden="true" />
             Edit
           </Button>
         )}
@@ -143,21 +136,21 @@ export function StepEmergencyReview({
   const fullName = getPatientFullName(personal);
 
   const personalSummary: SummaryItem[] = [
-    { label: "Full Name / ชื่อ-นามสกุล", value: fullName },
-    { label: "Date of Birth / ว/ด/ป เกิด", value: personal?.dateOfBirth },
+    { label: "Full Name", value: fullName },
+    { label: "Date of Birth", value: personal?.dateOfBirth },
     {
-      label: "Gender / เพศสภาพ",
+      label: "Gender",
       value: personal?.gender ? GENDER_LABELS[personal.gender] || personal.gender : null,
     },
-    { label: "Language / ภาษา", value: personal?.preferredLanguage },
-    { label: "Nationality / สัญชาติ", value: personal?.nationality },
-    { label: "Religion / ศาสนา", value: personal?.religion || "None / Not specified" },
+    { label: "Language", value: personal?.preferredLanguage },
+    { label: "Nationality", value: personal?.nationality },
+    { label: "Religion", value: personal?.religion || "None / Not specified" },
   ];
 
   const contactSummary: SummaryItem[] = [
-    { label: "Phone Number / เบอร์โทรศัพท์", value: contact?.phoneNumber },
-    { label: "Email / อีเมล", value: contact?.email },
-    { label: "Address / ที่อยู่ปัจจุบัน", value: contact?.address },
+    { label: "Phone Number", value: contact?.phoneNumber },
+    { label: "Email", value: contact?.email },
+    { label: "Address", value: contact?.address },
   ];
 
   const hasEmergency = Boolean(
@@ -166,120 +159,126 @@ export function StepEmergencyReview({
 
   const emergencySummary: SummaryItem[] = hasEmergency
     ? [
-        { label: "Contact Name / ผู้ติดต่อ", value: emergency?.contactName },
-        { label: "Relationship / ความสัมพันธ์", value: emergency?.relationship },
-        { label: "Emergency Phone / เบอร์โทรฉุกเฉิน", value: emergency?.contactPhone },
+        { label: "Contact Name", value: emergency?.contactName },
+        { label: "Relationship", value: emergency?.relationship },
+        { label: "Emergency Phone", value: emergency?.contactPhone },
       ]
-    : [{ label: "Status", value: "Not specified (ไม่ได้ระบุ — ไม่บังคับ)" }];
+    : [{ label: "Emergency Contact", value: "Not provided (Optional)" }];
 
   return (
-    <div className={cn("w-full space-y-6", className)}>
+    <div className={cn("w-full bg-card rounded-2xl border border-border/80 p-6 sm:p-8 shadow-xs space-y-8", className)}>
+      {/* Header */}
+      <div className="flex items-center gap-3 border-b border-border/60 pb-5">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <ShieldAlert className="size-5" aria-hidden="true" />
+        </div>
+        <div>
+          <h2 className="text-lg sm:text-xl font-bold text-foreground tracking-tight">
+            Emergency Contact &amp; Review
+          </h2>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+            ข้อมูลผู้ติดต่อฉุกเฉินและตรวจสอบความถูกต้องของข้อมูลก่อนส่ง
+          </p>
+        </div>
+      </div>
+
       {/* SECTION 1: Emergency Contact Input Fields (Optional) */}
-      <Card className="w-full shadow-xs border-border/80">
-        <CardHeader className="border-b border-border/60 pb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <ShieldAlert className="size-5" aria-hidden="true" />
-            </div>
-            <div>
-              <CardTitle className="text-lg sm:text-xl font-bold text-foreground">
-                Emergency Contact
-              </CardTitle>
-              <CardDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                ข้อมูลผู้ติดต่อฉุกเฉิน (ไม่บังคับระบุ)
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
+      <div className="space-y-5">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-foreground">
+            Emergency Contact Information
+          </h3>
+          <span className="text-xs text-muted-foreground">(Optional / ไม่บังคับระบุ)</span>
+        </div>
 
-        <CardContent className="space-y-5 pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Contact Name */}
-            <div className="space-y-2">
-              <Label htmlFor="contactName" className="text-sm font-medium">
-                Contact Name / ชื่อผู้ติดต่อ
-                <span className="text-xs text-muted-foreground font-normal ml-1">(Optional)</span>
-              </Label>
-              <Input
-                id="contactName"
-                type="text"
-                maxLength={100}
-                placeholder="e.g. สมศรี ใจดี / Somsri Jaidee"
-                autoComplete="name"
-                aria-invalid={Boolean(emergencyErrors?.contactName)}
-                aria-describedby={emergencyErrors?.contactName ? "contactName-error" : undefined}
-                className="min-h-[44px] h-11 text-base touch-target"
-                {...register("emergency.contactName")}
-              />
-              <FieldError id="contactName-error" error={emergencyErrors?.contactName?.message} />
-            </div>
-
-            {/* Emergency Phone */}
-            <div className="space-y-2">
-              <Label htmlFor="contactPhone" className="text-sm font-medium">
-                Emergency Phone / เบอร์โทรฉุกเฉิน
-                <span className="text-xs text-muted-foreground font-normal ml-1">(Optional)</span>
-              </Label>
-              <Controller
-                control={control}
-                name="emergency.contactPhone"
-                render={({ field }) => (
-                  <Input
-                    id="contactPhone"
-                    type="tel"
-                    inputMode="tel"
-                    autoComplete="tel"
-                    placeholder="e.g. 089-123-4567"
-                    value={field.value || ""}
-                    onChange={(e) => field.onChange(formatPhoneNumber(e.target.value))}
-                    onBlur={field.onBlur}
-                    onKeyDown={(e) => handlePhoneBackspaceKeyDown(e, field.onChange)}
-                    aria-invalid={Boolean(emergencyErrors?.contactPhone)}
-                    aria-describedby={emergencyErrors?.contactPhone ? "contactPhone-error" : undefined}
-                    className="min-h-[44px] h-11 text-base touch-target tabular-nums"
-                  />
-                )}
-              />
-              <FieldError id="contactPhone-error" error={emergencyErrors?.contactPhone?.message} />
-            </div>
-          </div>
-
-          {/* Relationship */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {/* Contact Name */}
           <div className="space-y-2">
-            <Label htmlFor="relationship" className="text-sm font-medium">
-              Relationship / ความสัมพันธ์
-              <span className="text-xs text-muted-foreground font-normal ml-1">(Optional)</span>
+            <Label htmlFor="contactName" className="text-sm font-medium">
+              Contact Name / ชื่อผู้ติดต่อ
             </Label>
             <Input
-              id="relationship"
+              id="contactName"
               type="text"
-              maxLength={50}
-              placeholder="e.g. มารดา (Mother), คู่สมรส (Spouse), บุตร (Child)"
-              aria-invalid={Boolean(emergencyErrors?.relationship)}
-              aria-describedby={emergencyErrors?.relationship ? "relationship-error" : undefined}
+              maxLength={100}
+              placeholder="e.g. สมศรี ใจดี / Somsri Jaidee"
+              autoComplete="name"
+              aria-invalid={Boolean(emergencyErrors?.contactName)}
+              aria-describedby={emergencyErrors?.contactName ? "contactName-error" : undefined}
               className="min-h-[44px] h-11 text-base touch-target"
-              {...register("emergency.relationship")}
+              {...register("emergency.contactName")}
             />
-            <FieldError id="relationship-error" error={emergencyErrors?.relationship?.message} />
+            <FieldError id="contactName-error" error={emergencyErrors?.contactName?.message} />
           </div>
-        </CardContent>
-      </Card>
 
-      {/* SECTION 2: Data-Driven Review Summary Cards */}
-      <div className="space-y-4">
-        <h2 className="text-base sm:text-lg font-bold text-foreground px-1">
-          Review Registration Summary / ตรวจสอบข้อมูลก่อนส่ง
-        </h2>
+          {/* Emergency Phone */}
+          <div className="space-y-2">
+            <Label htmlFor="contactPhone" className="text-sm font-medium">
+              Emergency Phone / เบอร์โทรฉุกเฉิน
+            </Label>
+            <Controller
+              control={control}
+              name="emergency.contactPhone"
+              render={({ field }) => (
+                <Input
+                  id="contactPhone"
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  placeholder="e.g. 089-123-4567"
+                  value={field.value || ""}
+                  onChange={(e) => field.onChange(formatPhoneNumber(e.target.value))}
+                  onBlur={field.onBlur}
+                  onKeyDown={(e) => handlePhoneBackspaceKeyDown(e, field.onChange)}
+                  aria-invalid={Boolean(emergencyErrors?.contactPhone)}
+                  aria-describedby={emergencyErrors?.contactPhone ? "contactPhone-error" : undefined}
+                  className="min-h-[44px] h-11 text-base touch-target tabular-nums"
+                />
+              )}
+            />
+            <FieldError id="contactPhone-error" error={emergencyErrors?.contactPhone?.message} />
+          </div>
+        </div>
+
+        {/* Relationship */}
+        <div className="space-y-2">
+          <Label htmlFor="relationship" className="text-sm font-medium">
+            Relationship / ความสัมพันธ์
+          </Label>
+          <Input
+            id="relationship"
+            type="text"
+            maxLength={50}
+            placeholder="e.g. มารดา (Mother), คู่สมรส (Spouse), บุตร (Child)"
+            aria-invalid={Boolean(emergencyErrors?.relationship)}
+            aria-describedby={emergencyErrors?.relationship ? "relationship-error" : undefined}
+            className="min-h-[44px] h-11 text-base touch-target"
+            {...register("emergency.relationship")}
+          />
+          <FieldError id="relationship-error" error={emergencyErrors?.relationship?.message} />
+        </div>
+      </div>
+
+      {/* SECTION 2: Data-Driven Review Summary */}
+      <div className="space-y-4 pt-6 border-t border-border/60">
+        <div>
+          <h3 className="text-base sm:text-lg font-bold text-foreground">
+            Review Registration Summary / ตรวจสอบข้อมูลก่อนส่ง
+          </h3>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            กรุณาตรวจสอบความถูกต้องของข้อมูลทั้งหมด หากต้องการแก้ไขสามารถคลิก &quot;Edit&quot; ที่ส่วนนั้นได้
+          </p>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <SummarySection
-            title="Personal Details (ข้อมูลส่วนตัว)"
+            title="Personal Details"
             icon={User}
             onEdit={() => onEditStep(1)}
             items={personalSummary}
           />
           <SummarySection
-            title="Contact & Address (ข้อมูลติดต่อ)"
+            title="Contact & Address"
             icon={Phone}
             onEdit={() => onEditStep(2)}
             items={contactSummary}
@@ -287,7 +286,7 @@ export function StepEmergencyReview({
         </div>
 
         <SummarySection
-          title="Emergency Contact Summary (ผู้ติดต่อฉุกเฉิน)"
+          title="Emergency Contact"
           icon={ShieldAlert}
           items={emergencySummary}
         />
@@ -297,7 +296,7 @@ export function StepEmergencyReview({
       {submissionError && (
         <div
           role="alert"
-          className="flex items-center gap-2 p-3.5 rounded-xl bg-destructive/10 border border-destructive/30 text-destructive text-xs sm:text-sm font-medium animate-in fade-in-50"
+          className="flex items-center gap-2 p-4 rounded-xl bg-destructive/10 border border-destructive/30 text-destructive text-sm font-medium animate-in fade-in-50"
         >
           <AlertCircle className="size-4 shrink-0" aria-hidden="true" />
           <span>{submissionError}</span>
@@ -305,39 +304,37 @@ export function StepEmergencyReview({
       )}
 
       {/* SECTION 3: Navigation Actions */}
-      <Card className="border-border/80 shadow-xs">
-        <CardFooter className="flex flex-col-reverse sm:flex-row items-center justify-between gap-3 p-4 sm:p-5">
-          <Button
-            type="button"
-            variant="outline"
-            disabled={isSubmitting}
-            onClick={onBack}
-            className="w-full sm:w-auto min-h-[44px] h-11 px-5 font-medium text-base touch-target cursor-pointer hover:bg-muted"
-          >
-            <ArrowLeft className="size-4 mr-2" aria-hidden="true" />
-            <span>Back: Contact & Address</span>
-          </Button>
+      <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-4 pt-6 border-t border-border/60">
+        <Button
+          type="button"
+          variant="outline"
+          disabled={isSubmitting}
+          onClick={onBack}
+          className="w-full sm:w-auto min-h-[44px] h-11 px-5 font-medium text-base touch-target cursor-pointer hover:bg-muted"
+        >
+          <ArrowLeft className="size-4 mr-2" aria-hidden="true" />
+          <span>Back: Contact & Address</span>
+        </Button>
 
-          <Button
-            type="button"
-            disabled={isSubmitting}
-            onClick={onSubmit}
-            className="w-full sm:w-auto min-h-[44px] h-11 px-7 font-bold text-base touch-target group shadow-md cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90 transition-all"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="size-4 mr-2 animate-spin" aria-hidden="true" />
-                <span>Submitting Registration...</span>
-              </>
-            ) : (
-              <>
-                <Send className="size-4 mr-2 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
-                <span>Submit Form / ส่งข้อมูลลงทะเบียน</span>
-              </>
-            )}
-          </Button>
-        </CardFooter>
-      </Card>
+        <Button
+          type="button"
+          disabled={isSubmitting}
+          onClick={onSubmit}
+          className="w-full sm:w-auto min-h-[44px] h-11 px-7 font-bold text-base touch-target group shadow-xs cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90 transition-all"
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="size-4 mr-2 animate-spin" aria-hidden="true" />
+              <span>Submitting Registration...</span>
+            </>
+          ) : (
+            <>
+              <Send className="size-4 mr-2 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+              <span>Submit Form / ส่งข้อมูลลงทะเบียน</span>
+            </>
+          )}
+        </Button>
+      </div>
     </div>
   );
 }

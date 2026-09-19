@@ -13,6 +13,7 @@ import {
   usePatientDraft,
   mergeDraftWithDefault,
 } from "@/hooks/usePatientDraft";
+import { usePatientRealtime } from "@/hooks/usePatientRealtime";
 import {
   broadcastFormSubmit,
   trackPatientPresence,
@@ -46,6 +47,13 @@ export default function PatientPage() {
   const { draft, isLoaded, isSaving, lastSavedAt, clearDraft } = usePatientDraft({
     formData: watchedFormData,
     currentStep,
+  });
+
+  // Real-time hook
+  usePatientRealtime({
+    formData: watchedFormData,
+    currentStep,
+    isSubmitted: isSuccessOpen,
   });
 
   // Restore saved draft on mount

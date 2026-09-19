@@ -5,7 +5,6 @@ import {
   ShieldCheck,
   ArrowRight,
   Columns2,
-  Sparkles,
   Zap,
   Wifi,
   CheckCircle2,
@@ -79,10 +78,9 @@ export default function Home() {
 
       {/* Hero Section */}
       <main className="flex-1 max-w-6xl mx-auto px-4 py-10 sm:py-14 flex flex-col items-center">
-        {/* Top Announcement Pill */}
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-6 border border-primary/20">
-          <Sparkles className="size-3.5" />
-          <span>Agnos Candidate Assignment • Milestone 4 Live Demo</span>
+        {/* System Overview Tag */}
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium mb-6 border border-primary/20">
+          <span>Clinical Intake &amp; Monitoring Platform</span>
         </div>
 
         <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight max-w-4xl text-center leading-[1.15]">
@@ -92,8 +90,7 @@ export default function Home() {
 
         <p className="text-muted-foreground text-base sm:text-lg max-w-2xl text-center mt-5 leading-relaxed">
           A mobile-first intake wizard for patients synchronized client-to-client
-          with staff dashboards in sub-50ms using Supabase Realtime and local
-          BroadcastChannel fallback — zero database write overhead.
+          with staff dashboards using Supabase Realtime and local BroadcastChannel fallback with zero database overhead.
         </p>
 
         {/* Primary CTA button for Split View */}
@@ -101,10 +98,10 @@ export default function Home() {
           <Link href="/split-view">
             <Button
               size="lg"
-              className="min-h-[48px] h-12 px-6 font-semibold shadow-md bg-primary hover:bg-primary/90 text-primary-foreground flex items-center gap-2 group"
+              className="min-h-[48px] h-12 px-6 font-semibold shadow-xs bg-primary hover:bg-primary/90 text-primary-foreground flex items-center gap-2 group cursor-pointer"
             >
               <Columns2 className="size-5" />
-              <span>Launch Dual Split-Screen Demo</span>
+              <span>Launch Dual Split-Screen View</span>
               <ArrowRight className="size-4 ml-1 transition-transform group-hover:translate-x-1" />
             </Button>
           </Link>
@@ -112,10 +109,10 @@ export default function Home() {
             <Button
               variant="outline"
               size="lg"
-              className="min-h-[48px] h-12 px-5 font-medium"
+              className="min-h-[48px] h-12 px-5 font-medium cursor-pointer hover:bg-muted"
             >
               <Eye className="size-4 mr-2 text-muted-foreground" />
-              <span>Evaluator Test Guide</span>
+              <span>Evaluation Protocol</span>
             </Button>
           </Link>
         </div>
@@ -123,29 +120,26 @@ export default function Home() {
         {/* Route Navigation Cards (3 Options) */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mt-14">
           {/* Card 1: Dual Split View (Featured) */}
-          <Card className="border-primary/40 bg-card/60 relative overflow-hidden shadow-sm hover:shadow-md transition-all hover:border-primary flex flex-col group">
-            <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-bold px-3 py-1 rounded-bl-lg tracking-wider uppercase">
-              Evaluator Pick
-            </div>
+          <Card className="border-border/80 hover:border-primary/50 transition-colors shadow-xs flex flex-col group">
             <CardHeader className="pb-3">
               <div className="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary mb-3">
                 <Columns2 className="size-6" />
               </div>
               <CardTitle className="text-xl font-bold group-hover:text-primary transition-colors flex items-center gap-2">
-                Dual Split-Screen Demo
+                Dual Split-Screen View
               </CardTitle>
               <CardDescription className="text-xs font-mono text-muted-foreground">
-                Route: /split-view
+                /split-view
               </CardDescription>
             </CardHeader>
             <CardContent className="flex-1 flex flex-col justify-between pt-0">
               <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-                Side-by-side sandbox running Patient and Staff views simultaneously.
-                Test instant keystroke mirroring and presence transitions in a single tab.
+                Side-by-side workspace running Patient and Staff views simultaneously.
+                Test instant keystroke streaming and presence transitions in a single tab.
               </p>
               <Link href="/split-view" className="block w-full mt-auto">
-                <Button className="w-full min-h-[44px] h-11 group/btn font-medium bg-primary text-primary-foreground">
-                  <span>Open Split-Screen Sandbox</span>
+                <Button className="w-full min-h-[44px] h-11 group/btn font-medium bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer">
+                  <span>Open Split View</span>
                   <ArrowRight className="size-4 ml-2 transition-transform group-hover/btn:translate-x-1" />
                 </Button>
               </Link>
@@ -162,7 +156,7 @@ export default function Home() {
                 Patient Intake Form
               </CardTitle>
               <CardDescription className="text-xs font-mono text-muted-foreground">
-                Route: /patient
+                /patient
               </CardDescription>
             </CardHeader>
             <CardContent className="flex-1 flex flex-col justify-between pt-0">
@@ -192,7 +186,7 @@ export default function Home() {
                 Staff Monitoring View
               </CardTitle>
               <CardDescription className="text-xs font-mono text-muted-foreground">
-                Route: /staff
+                /staff
               </CardDescription>
             </CardHeader>
             <CardContent className="flex-1 flex flex-col justify-between pt-0">
@@ -257,8 +251,8 @@ export default function Home() {
               </div>
               <h3 className="font-semibold text-base mb-1.5">Test Live Typing</h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Type in First Name, Phone, or DOB on Patient side. Notice the Staff card
-                mirrors each keystroke instantly with subtle blue highlight animations.
+                Type in First Name, Phone, or DOB on Patient side. Notice the Staff monitor
+                mirrors each keystroke instantly with subtle live highlight indicators.
               </p>
             </div>
 
@@ -268,12 +262,12 @@ export default function Home() {
                 <span className="flex size-7 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">
                   3
                 </span>
-                <Clock className="size-4 text-amber-500" />
+                <Clock className="size-4 text-slate-500" />
               </div>
-              <h3 className="font-semibold text-base mb-1.5">Observe Presence &amp; Idle</h3>
+              <h3 className="font-semibold text-base mb-1.5">Observe Presence &amp; Inactivity</h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Notice the status badge displays <strong>Typing</strong>. Stop typing for
-                5 seconds: the presence tracker automatically transitions to <strong>Idle</strong>.
+                Notice the presence pill displays <strong>Actively filling in</strong>. Stop typing for
+                5 seconds: the status transitions calmly to <strong>Inactive</strong> without alarm.
               </p>
             </div>
 
@@ -288,7 +282,7 @@ export default function Home() {
               <h3 className="font-semibold text-base mb-1.5">Submit &amp; Next Patient</h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 Complete Step 3 and submit the form. Staff view displays <strong>Submitted</strong>.
-                Click &quot;Call Next Patient&quot; to reset and test the turnover cycle.
+                Click &quot;Call Next Patient&quot; to reset the workspace for the next patient.
               </p>
             </div>
           </div>

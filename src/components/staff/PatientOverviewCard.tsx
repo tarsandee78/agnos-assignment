@@ -30,6 +30,7 @@ import {
   formatPhoneNumber,
   getPatientFullName,
   calculatePatientAge,
+  GENDER_DISPLAY_MAP,
   type Gender,
 } from '@/lib/schemas';
 
@@ -41,12 +42,13 @@ export interface PatientOverviewCardsProps {
   className?: string;
 }
 
-const GENDER_LABEL_MAP: Record<Gender, string> = {
-  male: 'Male (ชาย)',
-  female: 'Female (หญิง)',
-  other: 'Other (อื่นๆ)',
-  prefer_not_to_say: 'Prefer not to say (ไม่ระบุ)',
-};
+function getStepCardClass(isActive: boolean, className?: string) {
+  return cn(
+    'flex flex-col border-border/80 shadow-xs transition-colors duration-200',
+    isActive && 'border-primary/50 ring-1 ring-primary/30',
+    className
+  );
+}
 
 interface CompletenessInfo {
   label: string;
@@ -57,7 +59,7 @@ interface CompletenessInfo {
 function getCompleteness(filledCount: number, totalRequired: number, isOptional = false): CompletenessInfo {
   if (filledCount === totalRequired) {
     return {
-      label: isOptional ? `Provided (${filledCount}/${totalRequired})` : `Completed (${filledCount}/${totalRequired})`,
+      label: isOptional ? `Provided (${filledCount}/${totalRequired})` : `Complete (${filledCount}/${totalRequired})`,
       badgeClass: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
       icon: CheckCircle2,
     };
@@ -66,28 +68,28 @@ function getCompleteness(filledCount: number, totalRequired: number, isOptional 
   if (filledCount > 0) {
     return {
       label: `In Progress (${filledCount}/${totalRequired})`,
-      badgeClass: 'border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300',
+      badgeClass: 'border-primary/25 bg-primary/10 text-primary dark:text-primary-foreground',
       icon: Clock,
     };
   }
 
   if (isOptional) {
     return {
-      label: 'Not specified (Optional)',
-      badgeClass: 'border-zinc-300 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400',
+      label: 'Optional',
+      badgeClass: 'border-border bg-muted/60 text-muted-foreground',
       icon: Circle,
     };
   }
 
   return {
     label: `Pending (0/${totalRequired})`,
-    badgeClass: 'border-zinc-300 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400',
+    badgeClass: 'border-border bg-muted/60 text-muted-foreground',
     icon: Circle,
   };
 }
 
 // ============================================================================
-// 2. Shared Step Card Header (Eliminates Duplicated Code)
+// 2. Shared Step Card Header (Clean Clinical Scannability)
 // ============================================================================
 
 interface StepCardHeaderProps {
@@ -110,28 +112,24 @@ function StepCardHeader({
   const CompletenessIcon = completeness.icon;
 
   return (
-    <CardHeader className="border-b border-border/50 pb-3">
+    <CardHeader className="border-b border-border/60 pb-3">
       <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+        <div className="flex items-center gap-2.5">
+          <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-muted text-foreground">
             <Icon className="size-4" aria-hidden="true" />
           </div>
           <div>
-            <div className="flex items-center gap-1.5">
-              <CardTitle className="text-base font-bold">
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-sm font-semibold tracking-tight">
                 {stepNumber}. {title}
               </CardTitle>
               {isActive && (
-                <Badge
-                  variant="outline"
-                  className="h-5 px-1.5 text-[10px] gap-1 border-primary/40 text-primary bg-primary/5 font-semibold"
-                >
-                  <Radio className="size-2.5 animate-pulse text-primary" />
-                  <span>Active</span>
-                </Badge>
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+                  Active
+                </span>
               )}
             </div>
-            <CardDescription className="text-xs">{subtitle}</CardDescription>
+            <CardDescription className="text-xs text-muted-foreground mt-0.5">{subtitle}</CardDescription>
           </div>
         </div>
 
@@ -170,17 +168,11 @@ export function PersonalDetailsCard({ className }: { className?: string }) {
   const fullName = getPatientFullName(personal);
   const ageLabel = calculatePatientAge(personal?.dateOfBirth);
   const formattedGender = personal?.gender
-    ? GENDER_LABEL_MAP[personal.gender] || personal.gender
+    ? GENDER_DISPLAY_MAP[personal.gender] || personal.gender
     : null;
 
   return (
-    <Card
-      className={cn(
-        'transition-all duration-300 flex flex-col',
-        isActive && 'ring-2 ring-primary/40 border-primary/40 shadow-sm',
-        className
-      )}
-    >
+    <Card className={getStepCardClass(isActive, className)}>
       <StepCardHeader
         stepNumber={1}
         title="Personal Details"
@@ -278,13 +270,7 @@ export function ContactDetailsCard({ className }: { className?: string }) {
   const emailHref = contact?.email ? `mailto:${contact.email}` : undefined;
 
   return (
-    <Card
-      className={cn(
-        'transition-all duration-300 flex flex-col',
-        isActive && 'ring-2 ring-primary/40 border-primary/40 shadow-sm',
-        className
-      )}
-    >
+    <Card className={getStepCardClass(isActive, className)}>
       <StepCardHeader
         stepNumber={2}
         title="Contact & Address"
@@ -350,13 +336,7 @@ export function EmergencyContactCard({ className }: { className?: string }) {
     : undefined;
 
   return (
-    <Card
-      className={cn(
-        'transition-all duration-300 flex flex-col',
-        isActive && 'ring-2 ring-primary/40 border-primary/40 shadow-sm',
-        className
-      )}
-    >
+    <Card className={getStepCardClass(isActive, className)}>
       <StepCardHeader
         stepNumber={3}
         title="Emergency Contact"

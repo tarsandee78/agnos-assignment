@@ -21,14 +21,6 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
 
 export interface StepPersonalInfoProps {
   /** React Hook Form instance for PatientFormData */
@@ -134,26 +126,24 @@ export function StepPersonalInfo({
   };
 
   return (
-    <Card className={cn("w-full shadow-xs border-border/80", className)}>
+    <div className={cn("w-full bg-card rounded-2xl border border-border/80 p-6 sm:p-8 shadow-xs", className)}>
       {/* Header */}
-      <CardHeader className="border-b border-border/60 pb-4">
-        <div className="flex items-center gap-2.5">
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <User className="size-5" aria-hidden="true" />
-          </div>
-          <div>
-            <CardTitle className="text-lg sm:text-xl font-bold text-foreground">
-              Personal Details
-            </CardTitle>
-            <CardDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-              ข้อมูลส่วนตัวของผู้เข้ารับบริการ กรุณากรอกข้อมูลให้ครบถ้วน
-            </CardDescription>
-          </div>
+      <div className="flex items-center gap-3 border-b border-border/60 pb-5 mb-6">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <User className="size-5" aria-hidden="true" />
         </div>
-      </CardHeader>
+        <div>
+          <h2 className="text-lg sm:text-xl font-bold text-foreground tracking-tight">
+            Personal Details
+          </h2>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+            ข้อมูลส่วนตัวของผู้เข้ารับบริการ กรุณากรอกข้อมูลให้ครบถ้วน
+          </p>
+        </div>
+      </div>
 
       {/* Form Content */}
-      <CardContent className="space-y-6 pt-6">
+      <div className="space-y-6">
         {/* Section 1: Names (First / Middle / Last) */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* First Name */}
@@ -426,22 +416,22 @@ export function StepPersonalInfo({
             />
           </div>
         </div>
-      </CardContent>
+      </div>
 
       {/* Navigation Footer */}
-      <CardFooter className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-6 border-t border-border/60">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 mt-8 border-t border-border/60">
         <p className="text-xs text-muted-foreground order-2 sm:order-1 text-center sm:text-left">
           Fields marked with <span className="text-destructive font-bold">*</span> are required for registration
         </p>
         <Button
           type="button"
           onClick={handleNext}
-          className="order-1 sm:order-2 w-full sm:w-auto min-h-[44px] h-11 px-6 font-medium text-base touch-target group shadow-sm cursor-pointer"
+          className="order-1 sm:order-2 w-full sm:w-auto min-h-[44px] h-11 px-6 font-semibold text-base touch-target group shadow-xs cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90"
         >
           <span>Next: Contact Details</span>
-          <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+          <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5 ml-1.5" aria-hidden="true" />
         </Button>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 }

@@ -27,9 +27,9 @@ export const PATIENT_STEPS: readonly StepItem[] = [
   },
   {
     step: 3,
-    label: "Emergency Contact",
-    shortLabel: "Emergency",
-    description: "ข้อมูลผู้ติดต่อฉุกเฉิน / ยืนยัน",
+    label: "Emergency & Review",
+    shortLabel: "Review",
+    description: "ผู้ติดต่อฉุกเฉินและตรวจสอบข้อมูล",
   },
 ] as const;
 
@@ -156,7 +156,7 @@ export function PatientStepper({
                         !isActive &&
                         "bg-success text-success-foreground border border-success",
                       isActive &&
-                        "bg-primary text-primary-foreground ring-4 ring-primary/20 scale-105",
+                        "bg-primary text-primary-foreground ring-2 ring-primary/25",
                       isUpcoming &&
                         "border border-border bg-card text-muted-foreground"
                     )}

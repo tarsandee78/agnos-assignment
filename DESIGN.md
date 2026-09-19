@@ -117,9 +117,9 @@ Based on a predictable 4px / 8px incremental grid:
 - **Target Viewport:** Desktop-optimized (1280px+).
 - **Layout Stability:** Tabular structures with fixed-size skeletons ensuring **Zero Cumulative Layout Shift (CLS = 0)**.
 - **Calm Presence System:**
-  - **Actively filling in (`typing`):** Subtle pulsing green dot (`bg-emerald-500`) + "Actively filling in"
+  - **Actively filling in (`typing`):** Calm solid emerald indicator dot (`bg-emerald-500`) + "Actively filling in" (no `animate-ping`)
   - **Inactive (`idle`):** Calm neutral slate dot (`bg-slate-400` / `--inactive-foreground`) + "Inactive" (prevents false-alarm triage anxiety)
-  - **Submitted (`submitted`):** Solid emerald check badge (`bg-emerald-600 text-white`) + "Submitted"
+  - **Submitted (`submitted`):** Solid brand/emerald badge (`bg-primary text-white`) + "Submitted"
 
 ---
 

@@ -18,7 +18,7 @@ import {
   Clock,
   CheckCircle2,
   Layers,
-  Sparkles,
+  Activity,
 } from 'lucide-react';
 import type { PatientPresenceStatus } from '@/lib/realtime';
 
@@ -128,7 +128,7 @@ export default function StaffPage() {
               <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Last Field Modified
               </CardTitle>
-              <Sparkles className="size-4 text-muted-foreground" />
+              <Activity className="size-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-lg font-bold font-mono truncate">

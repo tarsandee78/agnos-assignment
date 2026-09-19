@@ -74,8 +74,8 @@ function ActivityTimeIndicator() {
 
   if (patientStatus === 'typing') {
     return (
-      <span className="inline-flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-medium animate-pulse">
-        <Clock className="size-3.5 shrink-0" />
+      <span className="inline-flex items-center gap-1 text-xs text-emerald-700 dark:text-emerald-300 font-medium">
+        <Clock className="size-3.5 shrink-0 text-emerald-600" />
         <span>Active just now</span>
       </span>
     );
@@ -91,8 +91,8 @@ function ActivityTimeIndicator() {
         : `${Math.floor(elapsedSeconds / 60)}m ${elapsedSeconds % 60}s`;
 
     return (
-      <span className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 font-medium tabular-nums">
-        <Clock className="size-3.5 shrink-0" />
+      <span className="inline-flex items-center gap-1 text-xs text-inactive-foreground font-medium tabular-nums">
+        <Clock className="size-3.5 shrink-0 text-inactive-foreground/80" />
         <span>Inactive for {formattedElapsed}</span>
       </span>
     );

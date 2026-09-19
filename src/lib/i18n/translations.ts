@@ -19,6 +19,7 @@ export const translations = {
       notSpecified: 'ไม่ระบุ',
       loading: 'กำลังโหลด...',
       edit: 'แก้ไข',
+      close: 'ปิด',
       requiredNote: 'จำเป็นต้องระบุ',
     },
     nav: {
@@ -183,6 +184,7 @@ export const translations = {
       notSpecified: 'Not specified',
       loading: 'Loading...',
       edit: 'Edit',
+      close: 'Close',
       requiredNote: 'Required',
     },
     nav: {

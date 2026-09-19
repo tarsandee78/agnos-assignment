@@ -128,7 +128,7 @@ export function SubmissionSuccessDialog({
             onClick={() => onOpenChange(false)}
             className="w-full min-h-[44px] h-11 text-sm sm:text-base font-medium touch-target cursor-pointer hover:bg-muted"
           >
-            <span>Close</span>
+            <span>{t.common.close}</span>
           </Button>
         </DialogFooter>
       </DialogContent>

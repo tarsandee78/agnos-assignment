@@ -183,7 +183,7 @@ function StepCardHeader({
           <CardTitle className="text-sm sm:text-base font-bold tracking-tight text-foreground leading-snug">
             {stepNumber}. {title}
           </CardTitle>
-          <CardDescription className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
+          <CardDescription className="text-xs text-muted-foreground mt-0.5 leading-normal">
             {subtitle}
           </CardDescription>
         </div>
@@ -204,8 +204,9 @@ export function PersonalDetailsCard({
   t: TranslationDictionary;
 }) {
   const personal = useStaffStore((state) => state.patientData?.personal);
+  const isSubmitted = useStaffStore((state) => state.isSubmitted);
   const currentStep = useCurrentStep();
-  const isActive = currentStep === 1;
+  const isActive = !isSubmitted && currentStep === 1;
 
   const requiredValues = [
     personal?.firstName,
@@ -344,8 +345,9 @@ export function ContactDetailsCard({
   t: TranslationDictionary;
 }) {
   const contact = useStaffStore((state) => state.patientData?.contact);
+  const isSubmitted = useStaffStore((state) => state.isSubmitted);
   const currentStep = useCurrentStep();
-  const isActive = currentStep === 2;
+  const isActive = !isSubmitted && currentStep === 2;
 
   const requiredValues = [contact?.phoneNumber, contact?.email, contact?.address];
   const filledCount = requiredValues.filter((v) => v && v.trim().length > 0).length;
@@ -419,8 +421,9 @@ export function EmergencyContactCard({
   t: TranslationDictionary;
 }) {
   const emergency = useStaffStore((state) => state.patientData?.emergency);
+  const isSubmitted = useStaffStore((state) => state.isSubmitted);
   const currentStep = useCurrentStep();
-  const isActive = currentStep === 3;
+  const isActive = !isSubmitted && currentStep === 3;
 
   const optionalValues = [
     emergency?.contactName,
@@ -428,7 +431,7 @@ export function EmergencyContactCard({
     emergency?.contactPhone,
   ];
   const filledCount = optionalValues.filter((v) => v && v.trim().length > 0).length;
-  const isCompleted = filledCount === 3;
+  const isCompleted = filledCount === 3 || (isSubmitted && filledCount > 0);
   const completeness = getCompleteness(filledCount, 3, t, true);
 
   const formattedEmergencyPhone = emergency?.contactPhone

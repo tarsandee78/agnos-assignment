@@ -39,7 +39,7 @@ export function LanguageToggle({
         onClick={() => onLanguageChange('th')}
         aria-pressed={currentLang === 'th'}
         className={cn(
-          'rounded-lg font-medium transition-all min-h-[36px] min-w-[40px] px-3 text-xs touch-target cursor-pointer flex items-center justify-center',
+          'rounded-lg font-medium transition-all min-h-[44px] min-w-[44px] px-3.5 text-xs touch-target cursor-pointer flex items-center justify-center',
           currentLang === 'th'
             ? 'bg-background text-foreground shadow-2xs font-bold ring-1 ring-border/50'
             : 'text-muted-foreground hover:text-foreground'
@@ -55,7 +55,7 @@ export function LanguageToggle({
         onClick={() => onLanguageChange('en')}
         aria-pressed={currentLang === 'en'}
         className={cn(
-          'rounded-lg font-medium transition-all min-h-[36px] min-w-[40px] px-3 text-xs touch-target cursor-pointer flex items-center justify-center',
+          'rounded-lg font-medium transition-all min-h-[44px] min-w-[44px] px-3.5 text-xs touch-target cursor-pointer flex items-center justify-center',
           currentLang === 'en'
             ? 'bg-background text-foreground shadow-2xs font-bold ring-1 ring-border/50'
             : 'text-muted-foreground hover:text-foreground'

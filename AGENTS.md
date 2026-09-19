@@ -63,6 +63,7 @@ src/
 │   ├── realtime.ts           # Channel manager & broadcast helpers
 │   ├── schemas.ts            # Zod validation schemas & shared domain helpers
 │   └── utils.ts              # Styling utilities (cn helper)
+├── hooks/                    # Shared custom React hooks (e.g., usePatientDraft, usePatientRealtime)
 └── store/
     └── useStaffStore.ts      # Zustand store for incoming real-time patient data
 ```

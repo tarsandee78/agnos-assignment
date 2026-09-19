@@ -35,9 +35,7 @@ export function SubmissionSuccessDialog({
   lang = "th",
   t,
 }: SubmissionSuccessDialogProps) {
-  if (!data) return null;
-
-  const patientFullName = getPatientFullName(data.personal);
+  const patientFullName = getPatientFullName(data?.personal);
 
   const formattedDate = React.useMemo(() => {
     try {
@@ -50,6 +48,8 @@ export function SubmissionSuccessDialog({
       return new Date().toLocaleString();
     }
   }, [submittedAt, lang]);
+
+  if (!data) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

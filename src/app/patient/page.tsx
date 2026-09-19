@@ -65,6 +65,7 @@ export default function PatientPage() {
         setCurrentStep(draft.currentStep);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Only restore draft once on initial load
   }, [isLoaded, reset]);
 
   const handleGoToStep = (targetStep: PatientFormStep) => {

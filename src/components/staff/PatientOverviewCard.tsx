@@ -42,10 +42,14 @@ export interface PatientOverviewCardsProps {
   t?: TranslationDictionary;
 }
 
-function getStepCardClass(isActive: boolean, className?: string) {
+function getStepCardClass(isActive: boolean, isCompleted: boolean, className?: string) {
   return cn(
-    'flex flex-col border-border/80 shadow-xs transition-colors duration-200 bg-card rounded-2xl overflow-hidden',
-    isActive && 'border-primary/60 ring-1 ring-primary/40',
+    'flex flex-col shadow-xs transition-all duration-300 bg-card rounded-2xl overflow-hidden relative border',
+    isActive
+      ? 'border-primary ring-2 ring-primary/40 shadow-[0_0_22px_rgba(59,130,246,0.25)] animate-blue-wave'
+      : isCompleted
+      ? 'card-green-glow bg-emerald-500/[0.015]'
+      : 'border-border/80',
     className
   );
 }
@@ -105,6 +109,7 @@ interface StepCardHeaderProps {
   subtitle: string;
   icon: React.ComponentType<{ className?: string }>;
   isActive: boolean;
+  isCompleted?: boolean;
   completeness: CompletenessInfo;
   activeBadgeText?: string;
 }
@@ -115,62 +120,73 @@ function StepCardHeader({
   subtitle,
   icon: Icon,
   isActive,
+  isCompleted = false,
   completeness,
   activeBadgeText = 'Active',
 }: StepCardHeaderProps) {
   const CompletenessIcon = completeness.icon;
 
   return (
-    <CardHeader className="border-b border-border/60 p-4 sm:p-5 h-[96px] min-h-[96px] flex flex-col justify-center">
-      <div className="flex items-start gap-3">
-        <div
-          className={cn(
-            'relative flex size-9 shrink-0 items-center justify-center rounded-lg transition-colors mt-0.5',
-            isActive
-              ? 'bg-primary/10 text-primary ring-2 ring-primary/30'
-              : 'bg-muted text-muted-foreground'
-          )}
-        >
-          <Icon className="size-4" aria-hidden="true" />
-          {isActive && (
-            <span className="absolute -top-1 -right-1 flex size-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-              <span className="relative inline-flex rounded-full size-2.5 bg-primary ring-2 ring-card" />
-            </span>
-          )}
-        </div>
-
-        <div className="min-w-0 flex-1 space-y-1">
-          {/* Row 1: Step Title & Completeness Badge */}
-          <div className="flex items-center justify-between gap-2">
-            <CardTitle className="text-sm sm:text-base font-bold tracking-tight text-foreground truncate">
-              {stepNumber}. {title}
-            </CardTitle>
-
-            <Badge
-              variant="outline"
-              className={cn(
-                'text-[11px] gap-1 py-0.5 px-2 font-medium shrink-0 whitespace-nowrap',
-                completeness.badgeClass
-              )}
-            >
-              <CompletenessIcon className="size-3 shrink-0" />
-              <span>{completeness.label}</span>
-            </Badge>
-          </div>
-
-          {/* Row 2: Subtitle & Active Indicator */}
-          <div className="flex items-center gap-1.5 min-w-0">
-            <CardDescription className="text-xs text-muted-foreground truncate">
-              {subtitle}
-            </CardDescription>
-            {isActive && (
-              <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold bg-primary/15 text-primary border border-primary/30 uppercase tracking-wider shrink-0">
-                {activeBadgeText}
-              </span>
+    <CardHeader className="border-b border-border/60 p-4 sm:p-5 h-[96px] min-h-[96px] flex flex-col justify-center relative">
+      {/* Row 1: Step Icon + Title (Left) & Top-Rightmost ACTIVE Badge (Right) */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+          <div
+            className={cn(
+              'relative flex size-8 shrink-0 items-center justify-center rounded-lg transition-all',
+              isActive
+                ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/30'
+                : isCompleted
+                ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400'
+                : 'bg-muted text-muted-foreground'
+            )}
+          >
+            {isCompleted ? (
+              <CheckCircle2 className="size-4 stroke-[2.5]" aria-hidden="true" />
+            ) : (
+              <Icon className="size-4" aria-hidden="true" />
             )}
           </div>
+
+          <CardTitle className="text-sm sm:text-base font-bold tracking-tight text-foreground whitespace-nowrap">
+            {stepNumber}. {title}
+          </CardTitle>
         </div>
+
+        {/* Top-rightmost: ACTIVE Badge or Completed Pill */}
+        {isActive ? (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-primary text-primary-foreground shadow-xs uppercase tracking-wider animate-pulse shrink-0 select-none">
+            <span className="size-1.5 rounded-full bg-white animate-ping" />
+            <span>{activeBadgeText}</span>
+          </span>
+        ) : isCompleted ? (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 uppercase tracking-wider shrink-0 select-none">
+            <CheckCircle2 className="size-3 stroke-[2.5]" />
+            <span>{completeness.label}</span>
+          </span>
+        ) : (
+          <div className="h-[20px] w-1 shrink-0" aria-hidden="true" />
+        )}
+      </div>
+
+      {/* Row 2: Subtitle description (Left) & Completeness Status Badge (Right) */}
+      <div className="flex items-center justify-between gap-2 mt-1.5 pl-[34px]">
+        <CardDescription className="text-xs text-muted-foreground truncate">
+          {subtitle}
+        </CardDescription>
+
+        {!isCompleted && (
+          <Badge
+            variant="outline"
+            className={cn(
+              'text-[11px] gap-1 py-0.5 px-2 font-medium shrink-0 whitespace-nowrap',
+              completeness.badgeClass
+            )}
+          >
+            <CompletenessIcon className="size-3 shrink-0" />
+            <span>{completeness.label}</span>
+          </Badge>
+        )}
       </div>
     </CardHeader>
   );
@@ -219,14 +235,17 @@ export function PersonalDetailsCard({
     ? t.personal.religionOptions.None
     : null;
 
+  const isCompleted = currentStep > 1 || filledCount === 6;
+
   return (
-    <Card className={getStepCardClass(isActive, className)}>
+    <Card className={getStepCardClass(isActive, isCompleted, className)}>
       <StepCardHeader
         stepNumber={1}
         title={t.staff.cards.step1Title}
         subtitle={t.staff.cards.step1Desc}
         icon={User}
         isActive={isActive}
+        isCompleted={isCompleted}
         completeness={completeness}
         activeBadgeText={t.common.active}
       />
@@ -238,6 +257,7 @@ export function PersonalDetailsCard({
           value={fullName}
           fieldName="personal.firstName"
           icon={User}
+          t={t}
         />
 
         {/* First & Last Name (Spacious 2-Column Split 50/50) */}
@@ -246,11 +266,13 @@ export function PersonalDetailsCard({
             label={t.personal.firstName}
             section="personal"
             field="firstName"
+            t={t}
           />
           <FieldDisplay
             label={t.personal.lastName}
             section="personal"
             field="lastName"
+            t={t}
           />
         </div>
 
@@ -259,6 +281,7 @@ export function PersonalDetailsCard({
           label={t.personal.middleName}
           section="personal"
           field="middleName"
+          t={t}
         />
 
         {/* Date of Birth & Gender (2-Column Grid) */}
@@ -269,11 +292,13 @@ export function PersonalDetailsCard({
             fieldName="personal.dateOfBirth"
             subValue={ageLabel}
             icon={Calendar}
+            t={t}
           />
           <FieldDisplay
             label={t.personal.gender}
             value={localizedGender}
             fieldName="personal.gender"
+            t={t}
           />
         </div>
 
@@ -284,11 +309,13 @@ export function PersonalDetailsCard({
             value={localizedLanguage}
             fieldName="personal.preferredLanguage"
             icon={Globe}
+            t={t}
           />
           <FieldDisplay
             label={t.personal.nationality}
             section="personal"
             field="nationality"
+            t={t}
           />
         </div>
 
@@ -297,6 +324,7 @@ export function PersonalDetailsCard({
           label={t.personal.religion}
           value={localizedReligion}
           fieldName="personal.religion"
+          t={t}
         />
       </CardContent>
     </Card>
@@ -328,14 +356,17 @@ export function ContactDetailsCard({
     : undefined;
   const emailHref = contact?.email ? `mailto:${contact.email}` : undefined;
 
+  const isCompleted = currentStep > 2 || filledCount === 3;
+
   return (
-    <Card className={getStepCardClass(isActive, className)}>
+    <Card className={getStepCardClass(isActive, isCompleted, className)}>
       <StepCardHeader
         stepNumber={2}
         title={t.staff.cards.step2Title}
         subtitle={t.staff.cards.step2Desc}
         icon={Phone}
         isActive={isActive}
+        isCompleted={isCompleted}
         completeness={completeness}
         activeBadgeText={t.common.active}
       />
@@ -349,6 +380,7 @@ export function ContactDetailsCard({
             mono
             href={phoneTelHref}
             icon={Phone}
+            t={t}
           />
           <FieldDisplay
             label={t.contact.email}
@@ -356,6 +388,7 @@ export function ContactDetailsCard({
             field="email"
             href={emailHref}
             icon={Mail}
+            t={t}
           />
         </div>
 
@@ -365,6 +398,7 @@ export function ContactDetailsCard({
           field="address"
           icon={MapPin}
           className="min-h-[72px]"
+          t={t}
         />
       </CardContent>
     </Card>
@@ -392,6 +426,7 @@ export function EmergencyContactCard({
     emergency?.contactPhone,
   ];
   const filledCount = optionalValues.filter((v) => v && v.trim().length > 0).length;
+  const isCompleted = filledCount === 3 || filledCount > 0;
   const completeness = getCompleteness(filledCount, 3, t, true);
 
   const formattedEmergencyPhone = emergency?.contactPhone
@@ -402,13 +437,14 @@ export function EmergencyContactCard({
     : undefined;
 
   return (
-    <Card className={getStepCardClass(isActive, className)}>
+    <Card className={getStepCardClass(isActive, isCompleted, className)}>
       <StepCardHeader
         stepNumber={3}
         title={t.staff.cards.step3Title}
         subtitle={t.staff.cards.step3Desc}
         icon={ShieldAlert}
         isActive={isActive}
+        isCompleted={isCompleted}
         completeness={completeness}
         activeBadgeText={t.common.active}
       />
@@ -420,12 +456,14 @@ export function EmergencyContactCard({
             section="emergency"
             field="contactName"
             icon={User}
+            t={t}
           />
           <FieldDisplay
             label={t.emergency.relationship}
             section="emergency"
             field="relationship"
             icon={Heart}
+            t={t}
           />
         </div>
 
@@ -436,6 +474,7 @@ export function EmergencyContactCard({
           mono
           href={emergencyPhoneHref}
           icon={Phone}
+          t={t}
         />
       </CardContent>
     </Card>

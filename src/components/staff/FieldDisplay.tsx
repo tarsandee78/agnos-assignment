@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useStaffStore, usePatientField } from '@/store/useStaffStore';
 import { PatientFormData } from '@/lib/schemas';
 import { cn } from '@/lib/utils';
+import { type TranslationDictionary } from '@/lib/i18n/translations';
 
 // ============================================================================
 // 1. Interfaces & Types (Small Interface - Matt Pocock)
@@ -31,6 +32,8 @@ export interface FieldDisplayProps<
   subValue?: React.ReactNode;
   /** Optional icon displayed next to the label */
   icon?: React.ComponentType<{ className?: string }>;
+  /** Optional translation dictionary */
+  t?: TranslationDictionary;
   /** Additional custom CSS classes */
   className?: string;
 }
@@ -75,6 +78,7 @@ export function FieldDisplay<
   href,
   subValue,
   icon: Icon,
+  t,
   className,
 }: FieldDisplayProps<Section, Field>) {
   // Read value via granular selector if section & field are provided
@@ -90,15 +94,29 @@ export function FieldDisplay<
   );
 
   const [isGlowing, setIsGlowing] = useState<boolean>(false);
+  const [isTyping, setIsTyping] = useState<boolean>(false);
 
   useEffect(() => {
     if (fieldChangedAt) {
+      setIsTyping(true);
       setIsGlowing(true);
-      const timer = setTimeout(() => {
+
+      // Show brief skeleton shimmer for 400ms so staff notice the field is actively being filled
+      const typingTimer = setTimeout(() => {
+        setIsTyping(false);
+      }, 400);
+
+      // Keep subtle updated glow for 1.8s
+      const glowTimer = setTimeout(() => {
         setIsGlowing(false);
-      }, 1500);
-      return () => clearTimeout(timer);
+      }, 1800);
+
+      return () => {
+        clearTimeout(typingTimer);
+        clearTimeout(glowTimer);
+      };
     } else {
+      setIsTyping(false);
       setIsGlowing(false);
     }
   }, [fieldChangedAt]);
@@ -122,55 +140,78 @@ export function FieldDisplay<
     <div
       data-field-name={targetField}
       className={cn(
-        // Zero-CLS layout: constant padding and border dimensions
-        'relative rounded-lg border px-3 py-2.5 transition-colors duration-200 ease-out font-sans',
-        isGlowing
+        // Zero-CLS layout: constant padding, min-height and border dimensions
+        'relative rounded-lg border px-3 py-2.5 transition-all duration-200 ease-out font-sans min-h-[68px] flex flex-col justify-center',
+        isTyping
+          ? 'border-primary/60 bg-primary/10 ring-1 ring-primary/30 text-foreground'
+          : isGlowing
           ? 'border-emerald-500/50 bg-emerald-500/10 text-foreground'
           : 'border-border/60 bg-muted/20 text-foreground hover:bg-muted/30',
         className
       )}
     >
-      {/* Top row: Label, Icon, and Live Typing Indicator */}
+      {/* Top row: Label, Icon, and Live Typing / Updated Indicator */}
       <div className="flex items-center justify-between gap-1.5 mb-1">
         <span className="flex items-center gap-1.5 text-xs sm:text-sm font-medium text-muted-foreground">
           {Icon && <Icon className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />}
           <span>{label}</span>
         </span>
 
-        {isGlowing && (
+        {isTyping ? (
           <span
             role="status"
             aria-live="polite"
-            className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300 shrink-0 transition-opacity duration-150"
+            className="inline-flex items-center gap-1 text-[11px] font-bold text-primary shrink-0 animate-pulse select-none"
+          >
+            <span className="size-1.5 rounded-full bg-primary animate-ping" aria-hidden="true" />
+            <span>{t?.staff.fieldStatus?.typing ?? 'Typing...'}</span>
+          </span>
+        ) : isGlowing ? (
+          <span
+            role="status"
+            aria-live="polite"
+            className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-400 shrink-0 transition-opacity duration-150 animate-in fade-in select-none"
           >
             <span className="size-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400" aria-hidden="true" />
-            <span>Updated</span>
+            <span>{t?.staff.fieldStatus?.updated ?? 'Updated'}</span>
           </span>
-        )}
+        ) : null}
       </div>
 
-      {/* Bottom row: Value & Optional SubValue */}
-      <div className="flex flex-wrap items-baseline gap-2">
-        <div
-          className={cn(
-            'text-sm sm:text-base font-semibold text-foreground break-words min-w-0 flex-1',
-            mono && 'font-mono tracking-tight'
-          )}
-        >
-          {href && hasValue ? (
-            <a
-              href={href}
-              className="text-primary hover:underline hover:text-primary/90 inline-flex items-center min-h-[44px] py-1 text-sm font-semibold touch-target transition-colors"
-            >
-              {renderedValue}
-            </a>
-          ) : (
-            renderedValue
-          )}
-        </div>
+      {/* Bottom row: Value, Skeleton Shimmer, & Optional SubValue */}
+      <div className="flex flex-wrap items-baseline gap-2 min-h-[26px]">
+        {isTyping ? (
+          <div className="flex items-center gap-2 h-6 select-none" aria-label="Typing input...">
+            <div className="h-4 w-24 sm:w-28 rounded bg-primary/20 animate-pulse" />
+            <span className="inline-flex gap-1 items-center">
+              <span className="size-1.5 rounded-full bg-primary animate-bounce [animation-delay:-0.3s]" />
+              <span className="size-1.5 rounded-full bg-primary animate-bounce [animation-delay:-0.15s]" />
+              <span className="size-1.5 rounded-full bg-primary animate-bounce" />
+            </span>
+          </div>
+        ) : (
+          <div
+            className={cn(
+              'text-sm sm:text-base font-semibold text-foreground break-words min-w-0 flex-1 transition-all duration-300',
+              isGlowing && 'animate-in fade-in zoom-in-95 duration-200',
+              mono && 'font-mono tracking-tight'
+            )}
+          >
+            {href && hasValue ? (
+              <a
+                href={href}
+                className="text-primary hover:underline hover:text-primary/90 inline-flex items-center min-h-[44px] py-1 text-sm font-semibold touch-target transition-colors"
+              >
+                {renderedValue}
+              </a>
+            ) : (
+              renderedValue
+            )}
+          </div>
+        )}
 
-        {subValue && (
-          <div className="shrink-0 text-xs font-medium text-muted-foreground">
+        {subValue && !isTyping && (
+          <div className="shrink-0 text-xs font-medium text-muted-foreground animate-in fade-in">
             {subValue}
           </div>
         )}

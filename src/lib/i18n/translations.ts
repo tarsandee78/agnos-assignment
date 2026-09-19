@@ -137,6 +137,10 @@ export const translations = {
         inactiveFor: (time: string) => `ไม่มีการเคลื่อนไหว (${time})`,
         submittedAt: (time: string) => `ส่งข้อมูลแล้ว (${time})`,
       },
+      fieldStatus: {
+        typing: 'กำลังกรอก...',
+        updated: 'อัปเดตแล้ว',
+      },
       cards: {
         step1Title: 'ข้อมูลส่วนตัว',
         step1Desc: 'ข้อมูลส่วนตัวและอัตลักษณ์',
@@ -296,6 +300,10 @@ export const translations = {
         activeNow: 'Actively filling in',
         inactiveFor: (time: string) => `Inactive (${time})`,
         submittedAt: (time: string) => `Submitted (${time})`,
+      },
+      fieldStatus: {
+        typing: 'Typing...',
+        updated: 'Updated',
       },
       cards: {
         step1Title: 'Personal Details',

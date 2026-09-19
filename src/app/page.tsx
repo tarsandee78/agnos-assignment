@@ -7,14 +7,11 @@ import {
   Columns2,
   Sparkles,
   Zap,
-  Activity,
   Wifi,
   CheckCircle2,
   Clock,
   Layers,
   Smartphone,
-  Monitor,
-  RefreshCw,
   Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -52,7 +49,7 @@ export default function Home() {
               <Button
                 variant="default"
                 size="sm"
-                className="min-h-[44px] sm:min-h-[38px] px-3.5 font-medium shadow-xs bg-primary hover:bg-primary/90 text-primary-foreground flex items-center gap-1.5"
+                className="min-h-[44px] px-3.5 font-medium shadow-xs bg-primary hover:bg-primary/90 text-primary-foreground flex items-center gap-1.5 touch-target"
               >
                 <Columns2 className="size-4" />
                 <span>Split-Screen Demo</span>
@@ -62,7 +59,7 @@ export default function Home() {
               <Button
                 variant="outline"
                 size="sm"
-                className="min-h-[44px] sm:min-h-[38px] px-3 font-medium hidden md:inline-flex"
+                className="min-h-[44px] px-3 font-medium hidden md:inline-flex touch-target"
               >
                 Patient View
               </Button>
@@ -71,7 +68,7 @@ export default function Home() {
               <Button
                 variant="outline"
                 size="sm"
-                className="min-h-[44px] sm:min-h-[38px] px-3 font-medium hidden md:inline-flex"
+                className="min-h-[44px] px-3 font-medium hidden md:inline-flex touch-target"
               >
                 Staff View
               </Button>

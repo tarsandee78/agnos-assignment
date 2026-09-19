@@ -10,23 +10,35 @@ import {
   Monitor,
   RotateCw,
   ExternalLink,
-  Activity,
-  Wifi,
   Sparkles,
-  Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  subscribeToPatientRoom,
+  type RealtimeConnectionStatus,
+} from "@/lib/realtime";
 
 type ViewMode = "split-equal" | "mobile-mockup";
 type MobileTab = "patient" | "staff";
 
 export default function SplitViewPage() {
-  const [viewMode, setViewMode] = React.useState<ViewMode>("mobile-mockup");
+  // Default to 50/50 split as requested by spec, with mobile-mockup option
+  const [viewMode, setViewMode] = React.useState<ViewMode>("split-equal");
   const [activeTab, setActiveTab] = React.useState<MobileTab>("patient");
   const [patientKey, setPatientKey] = React.useState(0);
   const [staffKey, setStaffKey] = React.useState(0);
   const [showTip, setShowTip] = React.useState(true);
+  const [connectionStatus, setConnectionStatus] =
+    React.useState<RealtimeConnectionStatus>("CONNECTING");
+
+  // Track live realtime connection status for the room
+  React.useEffect(() => {
+    const unsubscribe = subscribeToPatientRoom({
+      onStatusChange: (status) => setConnectionStatus(status),
+    });
+    return () => unsubscribe();
+  }, []);
 
   const handleReloadPatient = () => setPatientKey((k) => k + 1);
   const handleReloadStaff = () => setStaffKey((k) => k + 1);
@@ -34,6 +46,24 @@ export default function SplitViewPage() {
     setPatientKey((k) => k + 1);
     setStaffKey((k) => k + 1);
   };
+
+  // Parameterized tab configuration for mobile view (Clean Seam / No Duplication)
+  const currentMobileView = {
+    patient: {
+      title: "Patient Intake Form",
+      subtitle: "Displaying Patient View (Use switcher above for Staff)",
+      src: "/patient",
+      key: patientKey,
+      onReload: handleReloadPatient,
+    },
+    staff: {
+      title: "Staff Monitoring Dashboard",
+      subtitle: "Displaying Staff Monitor (Use switcher above for Patient)",
+      src: "/staff",
+      key: staffKey,
+      onReload: handleReloadStaff,
+    },
+  }[activeTab];
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-muted/20 flex flex-col text-foreground">
@@ -45,7 +75,7 @@ export default function SplitViewPage() {
             <Button
               variant="ghost"
               size="sm"
-              className="min-h-[38px] h-9 px-2.5 text-muted-foreground hover:text-foreground touch-target"
+              className="min-h-[44px] h-10 px-2.5 text-muted-foreground hover:text-foreground touch-target"
               title="Return to Landing Page"
             >
               <ArrowLeft className="size-4 mr-1.5" />
@@ -64,24 +94,44 @@ export default function SplitViewPage() {
                 <span className="font-bold text-xs sm:text-sm tracking-tight leading-none hidden sm:inline">
                   Agnos Live Sandbox
                 </span>
-                <Badge
-                  variant="outline"
-                  className="text-[10px] py-0 px-1.5 h-4 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hidden sm:flex items-center gap-1 font-medium"
-                >
-                  <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>Realtime Room</span>
-                </Badge>
+
+                {/* Dynamic Real-time Status Badge */}
+                {connectionStatus === "CONNECTED" ? (
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] py-0 px-1.5 h-5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hidden sm:flex items-center gap-1 font-medium"
+                  >
+                    <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span>Realtime Room</span>
+                  </Badge>
+                ) : connectionStatus === "FALLBACK_LOCAL" ? (
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] py-0 px-1.5 h-5 bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 hidden sm:flex items-center gap-1 font-medium"
+                  >
+                    <span className="size-1.5 rounded-full bg-amber-500 animate-pulse" />
+                    <span>Local Fallback</span>
+                  </Badge>
+                ) : (
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] py-0 px-1.5 h-5 bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30 hidden sm:flex items-center gap-1 font-medium"
+                  >
+                    <span className="size-1.5 rounded-full bg-blue-500 animate-pulse" />
+                    <span>Connecting...</span>
+                  </Badge>
+                )}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Center: Mobile Tab Switcher (Visible on screens < 1024px) */}
+        {/* Center: Mobile Tab Switcher (Visible on screens < 1024px) - Minimum 44px Touch Target */}
         <div className="flex lg:hidden items-center bg-muted/80 p-0.5 rounded-lg border border-border/70">
           <button
             type="button"
             onClick={() => setActiveTab("patient")}
-            className={`min-h-[34px] px-3 text-xs font-semibold rounded-md transition-all flex items-center gap-1.5 ${
+            className={`min-h-[44px] px-3.5 text-xs font-semibold rounded-md transition-all flex items-center gap-1.5 touch-target ${
               activeTab === "patient"
                 ? "bg-card text-foreground shadow-xs"
                 : "text-muted-foreground hover:text-foreground"
@@ -93,7 +143,7 @@ export default function SplitViewPage() {
           <button
             type="button"
             onClick={() => setActiveTab("staff")}
-            className={`min-h-[34px] px-3 text-xs font-semibold rounded-md transition-all flex items-center gap-1.5 ${
+            className={`min-h-[44px] px-3.5 text-xs font-semibold rounded-md transition-all flex items-center gap-1.5 touch-target ${
               activeTab === "staff"
                 ? "bg-card text-foreground shadow-xs"
                 : "text-muted-foreground hover:text-foreground"
@@ -104,25 +154,12 @@ export default function SplitViewPage() {
           </button>
         </div>
 
-        {/* Center: Desktop Layout Selector (Visible on lg+ screens) */}
-        <div className="hidden lg:flex items-center gap-1.5 bg-muted/60 p-1 rounded-lg border border-border/70">
-          <button
-            type="button"
-            onClick={() => setViewMode("mobile-mockup")}
-            className={`min-h-[32px] px-2.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5 ${
-              viewMode === "mobile-mockup"
-                ? "bg-card text-foreground shadow-xs font-semibold"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-            title="Simulate Mobile Phone beside Desktop Monitor"
-          >
-            <Smartphone className="size-3.5 text-primary" />
-            <span>Mobile + Desktop</span>
-          </button>
+        {/* Center: Desktop Layout Selector (Visible on lg+ screens) - Minimum 44px Touch Target */}
+        <div className="hidden lg:flex items-center gap-1 bg-muted/60 p-0.5 rounded-lg border border-border/70">
           <button
             type="button"
             onClick={() => setViewMode("split-equal")}
-            className={`min-h-[32px] px-2.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5 ${
+            className={`min-h-[44px] px-3 text-xs font-medium rounded-md transition-all flex items-center gap-1.5 touch-target ${
               viewMode === "split-equal"
                 ? "bg-card text-foreground shadow-xs font-semibold"
                 : "text-muted-foreground hover:text-foreground"
@@ -132,6 +169,19 @@ export default function SplitViewPage() {
             <Columns2 className="size-3.5 text-primary" />
             <span>50 / 50 Split</span>
           </button>
+          <button
+            type="button"
+            onClick={() => setViewMode("mobile-mockup")}
+            className={`min-h-[44px] px-3 text-xs font-medium rounded-md transition-all flex items-center gap-1.5 touch-target ${
+              viewMode === "mobile-mockup"
+                ? "bg-card text-foreground shadow-xs font-semibold"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+            title="Simulate Mobile Phone beside Desktop Monitor"
+          >
+            <Smartphone className="size-3.5 text-primary" />
+            <span>Mobile + Desktop</span>
+          </button>
         </div>
 
         {/* Right: Quick Actions */}
@@ -140,7 +190,7 @@ export default function SplitViewPage() {
             variant="ghost"
             size="sm"
             onClick={handleReloadAll}
-            className="min-h-[38px] h-8 px-2 text-xs text-muted-foreground hover:text-foreground touch-target"
+            className="min-h-[44px] h-10 px-2.5 text-xs text-muted-foreground hover:text-foreground touch-target"
             title="Reload both frames"
           >
             <RotateCw className="size-3.5 mr-1" />
@@ -159,7 +209,7 @@ export default function SplitViewPage() {
             <Button
               variant="outline"
               size="sm"
-              className="min-h-[38px] h-8 px-2 text-[11px] text-muted-foreground"
+              className="min-h-[44px] h-10 px-2.5 text-[11px] text-muted-foreground touch-target"
             >
               <span>Patient Tab</span>
               <ExternalLink className="size-3 ml-1" />
@@ -176,7 +226,7 @@ export default function SplitViewPage() {
             <Button
               variant="outline"
               size="sm"
-              className="min-h-[38px] h-8 px-2 text-[11px] text-muted-foreground"
+              className="min-h-[44px] h-10 px-2.5 text-[11px] text-muted-foreground touch-target"
             >
               <span>Staff Tab</span>
               <ExternalLink className="size-3 ml-1" />
@@ -197,7 +247,7 @@ export default function SplitViewPage() {
           <button
             type="button"
             onClick={() => setShowTip(false)}
-            className="text-xs text-muted-foreground hover:text-foreground ml-2 shrink-0"
+            className="min-h-[44px] px-2 text-xs text-muted-foreground hover:text-foreground ml-2 shrink-0 touch-target flex items-center font-medium"
             title="Dismiss tip"
           >
             Dismiss
@@ -229,7 +279,7 @@ export default function SplitViewPage() {
                 <button
                   type="button"
                   onClick={handleReloadPatient}
-                  className="text-muted-foreground hover:text-foreground text-[11px] flex items-center gap-1"
+                  className="min-h-[44px] px-2 text-muted-foreground hover:text-foreground text-[11px] flex items-center gap-1 touch-target font-medium"
                   title="Reload Patient Form"
                 >
                   <RotateCw className="size-3" />
@@ -278,7 +328,7 @@ export default function SplitViewPage() {
                 <button
                   type="button"
                   onClick={handleReloadStaff}
-                  className="text-muted-foreground hover:text-foreground text-[11px] flex items-center gap-1"
+                  className="min-h-[44px] px-2 text-muted-foreground hover:text-foreground text-[11px] flex items-center gap-1 touch-target font-medium"
                   title="Reload Staff Dashboard"
                 >
                   <RotateCw className="size-3" />
@@ -301,49 +351,26 @@ export default function SplitViewPage() {
 
         {/* ========================================================================= */}
         {/* MOBILE & TABLET TABBED VIEW (< 1024px screens)                             */}
+        {/* Parameterized without duplication                                         */}
         {/* ========================================================================= */}
         <div className="lg:hidden w-full h-full overflow-hidden flex flex-col">
-          {activeTab === "patient" ? (
-            <div className="w-full h-full flex flex-col">
-              <div className="px-3 py-1.5 bg-primary/10 border-b border-primary/20 text-[11px] text-primary flex items-center justify-between">
-                <span>Displaying Patient View (Use switcher above for Staff)</span>
-                <button
-                  type="button"
-                  onClick={handleReloadPatient}
-                  className="text-xs flex items-center gap-1"
-                >
-                  <RotateCw className="size-3" />
-                  <span>Reload</span>
-                </button>
-              </div>
-              <iframe
-                key={`patient-mobile-${patientKey}`}
-                src="/patient"
-                title="Patient Intake Form"
-                className="w-full flex-1 border-0 bg-background"
-              />
-            </div>
-          ) : (
-            <div className="w-full h-full flex flex-col">
-              <div className="px-3 py-1.5 bg-primary/10 border-b border-primary/20 text-[11px] text-primary flex items-center justify-between">
-                <span>Displaying Staff Monitor (Use switcher above for Patient)</span>
-                <button
-                  type="button"
-                  onClick={handleReloadStaff}
-                  className="text-xs flex items-center gap-1"
-                >
-                  <RotateCw className="size-3" />
-                  <span>Reload</span>
-                </button>
-              </div>
-              <iframe
-                key={`staff-mobile-${staffKey}`}
-                src="/staff"
-                title="Staff Monitoring Dashboard"
-                className="w-full flex-1 border-0 bg-background"
-              />
-            </div>
-          )}
+          <div className="px-3 py-1 bg-primary/10 border-b border-primary/20 text-[11px] text-primary flex items-center justify-between">
+            <span className="truncate">{currentMobileView.subtitle}</span>
+            <button
+              type="button"
+              onClick={currentMobileView.onReload}
+              className="min-h-[44px] px-2 text-xs flex items-center gap-1 touch-target font-medium"
+            >
+              <RotateCw className="size-3" />
+              <span>Reload</span>
+            </button>
+          </div>
+          <iframe
+            key={`${activeTab}-mobile-${currentMobileView.key}`}
+            src={currentMobileView.src}
+            title={currentMobileView.title}
+            className="w-full flex-1 border-0 bg-background"
+          />
         </div>
       </main>
     </div>

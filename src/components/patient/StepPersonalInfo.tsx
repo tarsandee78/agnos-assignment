@@ -6,6 +6,8 @@ import { AlertCircle, ArrowRight, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   GENDER_OPTIONS,
+  GENDER_DISPLAY_MAP,
+  type Gender,
   PREFERRED_LANGUAGE_OPTIONS,
   COMMON_RELIGION_OPTIONS,
   type PatientFormData,
@@ -13,7 +15,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { RadioGroup, RadioCard } from "@/components/ui/radio-group";
 import {
   Select,
   SelectTrigger,
@@ -30,14 +31,6 @@ export interface StepPersonalInfoProps {
   /** Optional custom CSS classes */
   className?: string;
 }
-
-
-const GENDER_DESCRIPTIONS: Record<string, string> = {
-  male: "ชาย",
-  female: "หญิง",
-  other: "อื่นๆ",
-  prefer_not_to_say: "ไม่ประสงค์ระบุ",
-};
 
 const RELIGION_SELECT_OPTIONS = [
   { value: "none", label: "None / Not specified (ไม่ระบุ)" },
@@ -220,10 +213,10 @@ export function StepPersonalInfo({
         </div>
 
         {/* Section 2: Date of Birth & Gender */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 pt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
           {/* Date of Birth */}
-          <div className="lg:col-span-5 space-y-2">
-            <Label htmlFor="dateOfBirth" className="text-sm font-medium">
+          <div className="space-y-2">
+            <Label htmlFor="dateOfBirth" className="text-sm sm:text-base font-medium text-foreground">
               Date of Birth / วันเดือนปีเกิด <RequiredIndicator />
             </Label>
             <Input
@@ -235,7 +228,7 @@ export function StepPersonalInfo({
               aria-describedby={
                 personalErrors?.dateOfBirth ? "dateOfBirth-error" : undefined
               }
-              className="min-h-[44px] h-11 text-base touch-target"
+              className="min-h-[44px] h-11 text-base touch-target bg-background"
               {...register("personal.dateOfBirth")}
             />
             <FieldError
@@ -244,53 +237,51 @@ export function StepPersonalInfo({
             />
           </div>
 
-          {/* Gender (Radio Cards) */}
-          <div className="lg:col-span-7 space-y-2">
-            <fieldset
-              className="space-y-2"
-              aria-invalid={Boolean(personalErrors?.gender)}
-              aria-describedby={
-                personalErrors?.gender ? "gender-error" : undefined
-              }
-            >
-              <legend className="flex items-center gap-1.5 text-sm font-medium text-foreground">
-                Gender / เพศสภาพ <RequiredIndicator />
-              </legend>
-
-              <Controller
-                control={control}
-                name="personal.gender"
-                render={({ field }) => (
-                  <RadioGroup
-                    value={field.value}
-                    onValueChange={(val) => {
-                      field.onChange(val);
-                      field.onBlur();
-                    }}
+          {/* Gender (Compact Select Dropdown) */}
+          <div className="space-y-2">
+            <Label htmlFor="gender" className="text-sm sm:text-base font-medium text-foreground">
+              Gender / เพศสภาพ <RequiredIndicator />
+            </Label>
+            <Controller
+              control={control}
+              name="personal.gender"
+              render={({ field }) => (
+                <Select
+                  items={GENDER_OPTIONS}
+                  value={field.value || ""}
+                  onValueChange={(val) => {
+                    field.onChange(val);
+                    field.onBlur();
+                  }}
+                >
+                  <SelectTrigger
+                    id="gender"
                     aria-invalid={Boolean(personalErrors?.gender)}
                     aria-describedby={
                       personalErrors?.gender ? "gender-error" : undefined
                     }
-                    className="grid grid-cols-1 sm:grid-cols-2 gap-2.5"
+                    className="min-h-[44px] h-11 text-base touch-target w-full bg-background cursor-pointer"
                   >
+                    <SelectValue placeholder="Select gender / เลือกเพศสภาพ" />
+                  </SelectTrigger>
+                  <SelectContent>
                     {GENDER_OPTIONS.map((opt) => (
-                      <RadioCard
+                      <SelectItem
                         key={opt.value}
                         value={opt.value}
-                        title={opt.label}
-                        description={GENDER_DESCRIPTIONS[opt.value]}
-                        className="min-h-[52px] py-2.5 px-3 touch-target"
-                      />
+                        className="text-base py-2.5 cursor-pointer"
+                      >
+                        {GENDER_DISPLAY_MAP[opt.value as Gender]}
+                      </SelectItem>
                     ))}
-                  </RadioGroup>
-                )}
-              />
-
-              <FieldError
-                id="gender-error"
-                error={personalErrors?.gender?.message}
-              />
-            </fieldset>
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            <FieldError
+              id="gender-error"
+              error={personalErrors?.gender?.message}
+            />
           </div>
         </div>
 

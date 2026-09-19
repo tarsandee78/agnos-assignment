@@ -120,16 +120,16 @@ function StepCardHeader({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <CardTitle className="text-sm font-semibold tracking-tight">
+              <CardTitle className="text-base font-bold tracking-tight text-foreground">
                 {stepNumber}. {title}
               </CardTitle>
               {isActive && (
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-primary/10 text-primary border border-primary/30">
                   Active
                 </span>
               )}
             </div>
-            <CardDescription className="text-xs text-muted-foreground mt-0.5">{subtitle}</CardDescription>
+            <CardDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5">{subtitle}</CardDescription>
           </div>
         </div>
 

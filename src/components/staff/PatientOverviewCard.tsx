@@ -30,8 +30,7 @@ import {
   getPatientFullName,
   calculatePatientAge,
 } from '@/lib/schemas';
-import { useLanguage } from '@/hooks/useLanguage';
-import { type TranslationDictionary, type Language } from '@/lib/i18n/translations';
+import { translations, type TranslationDictionary, type Language } from '@/lib/i18n/translations';
 
 // ============================================================================
 // 1. Interfaces & Configurations
@@ -122,19 +121,19 @@ function StepCardHeader({
   const CompletenessIcon = completeness.icon;
 
   return (
-    <CardHeader className="border-b border-border/60 p-4 sm:p-5 min-h-[92px] flex flex-col justify-center">
-      <div className="flex items-start justify-between gap-2.5">
-        <div className="flex items-center gap-2.5 min-w-0">
+    <CardHeader className="border-b border-border/60 p-4 sm:p-5 h-[96px] min-h-[96px] flex flex-col justify-center">
+      <div className="flex items-center justify-between gap-2.5">
+        <div className="flex items-center gap-2.5 min-w-0 flex-1">
           <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground">
             <Icon className="size-4" aria-hidden="true" />
           </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5 flex-wrap">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5 min-w-0">
               <CardTitle className="text-sm sm:text-base font-bold tracking-tight text-foreground truncate">
                 {stepNumber}. {title}
               </CardTitle>
               {isActive && (
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-primary/15 text-primary border border-primary/30 uppercase tracking-wider">
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-primary/15 text-primary border border-primary/30 uppercase tracking-wider shrink-0">
                   {activeBadgeText}
                 </span>
               )}
@@ -147,7 +146,7 @@ function StepCardHeader({
 
         <Badge
           variant="outline"
-          className={cn('text-[11px] gap-1 py-0.5 px-2 font-medium shrink-0 self-start', completeness.badgeClass)}
+          className={cn('text-[11px] gap-1 py-0.5 px-2 font-medium shrink-0', completeness.badgeClass)}
         >
           <CompletenessIcon className="size-3 shrink-0" />
           <span>{completeness.label}</span>
@@ -427,15 +426,14 @@ export function EmergencyContactCard({
 // 6. Main Container
 // ============================================================================
 
-export function PatientOverviewCards({ className, t: propT }: PatientOverviewCardsProps) {
-  const defaultHook = useLanguage('agnos_lang_staff', 'th');
-  const t = propT || defaultHook.t;
+export function PatientOverviewCards({ className, t }: PatientOverviewCardsProps) {
+  const activeT = t || translations.th;
 
   return (
     <div className={cn('grid grid-cols-1 gap-6 lg:grid-cols-3 items-stretch', className)}>
-      <PersonalDetailsCard t={t} />
-      <ContactDetailsCard t={t} />
-      <EmergencyContactCard t={t} />
+      <PersonalDetailsCard t={activeT} />
+      <ContactDetailsCard t={activeT} />
+      <EmergencyContactCard t={activeT} />
     </div>
   );
 }

@@ -4,8 +4,7 @@ import * as React from "react";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PatientFormStep } from "@/lib/schemas";
-import { useLanguage } from "@/hooks/useLanguage";
-import { type Language, type TranslationDictionary } from "@/lib/i18n/translations";
+import { translations, type Language, type TranslationDictionary } from "@/lib/i18n/translations";
 
 export interface StepItem {
   step: PatientFormStep;
@@ -36,8 +35,7 @@ export function PatientStepper({
   className,
   t: propT,
 }: PatientStepperProps) {
-  const defaultHook = useLanguage("agnos_lang_patient", "th");
-  const t = propT || defaultHook.t;
+  const t = propT || translations.th;
 
   const steps: StepItem[] = React.useMemo(
     () => [

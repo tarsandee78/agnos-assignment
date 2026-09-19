@@ -12,8 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { getPatientFullName, type PatientFormData } from "@/lib/schemas";
-import { useLanguage } from "@/hooks/useLanguage";
-import { type TranslationDictionary } from "@/lib/i18n/translations";
+import { type TranslationDictionary, type Language } from "@/lib/i18n/translations";
 
 export interface SubmissionSuccessDialogProps {
   open: boolean;
@@ -22,7 +21,8 @@ export interface SubmissionSuccessDialogProps {
   referenceId?: string;
   submittedAt?: string;
   onResetAndNew: () => void;
-  t?: TranslationDictionary;
+  lang?: Language;
+  t: TranslationDictionary;
 }
 
 export function SubmissionSuccessDialog({
@@ -32,11 +32,9 @@ export function SubmissionSuccessDialog({
   referenceId,
   submittedAt,
   onResetAndNew,
-  t: propT,
+  lang = "th",
+  t,
 }: SubmissionSuccessDialogProps) {
-  const defaultHook = useLanguage("agnos_lang_patient", "th");
-  const t = propT || defaultHook.t;
-
   if (!data) return null;
 
   const patientFullName = getPatientFullName(data.personal);
@@ -44,14 +42,14 @@ export function SubmissionSuccessDialog({
   const formattedDate = React.useMemo(() => {
     try {
       const dateObj = submittedAt ? new Date(submittedAt) : new Date();
-      return new Intl.DateTimeFormat(t.common.back === "ย้อนกลับ" ? "th-TH" : "en-US", {
+      return new Intl.DateTimeFormat(lang === "th" ? "th-TH" : "en-US", {
         dateStyle: "medium",
         timeStyle: "medium",
       }).format(dateObj);
     } catch {
       return new Date().toLocaleString();
     }
-  }, [submittedAt, t]);
+  }, [submittedAt, lang]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

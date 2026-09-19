@@ -110,6 +110,38 @@ function ActivityTimeIndicator({ t }: { t?: TranslationDictionary }) {
 // 3. Connection Status Configuration & Sub-component
 // ============================================================================
 
+function getConnectionConfig(
+  status: RealtimeConnectionStatus,
+  t?: TranslationDictionary
+) {
+  const map: Record<
+    RealtimeConnectionStatus,
+    { label: string; badgeClass: string; icon: React.ComponentType<{ className?: string }> }
+  > = {
+    CONNECTED: {
+      label: t?.staff.connection.connected ?? 'Connected (Supabase)',
+      badgeClass: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+      icon: Wifi,
+    },
+    FALLBACK_LOCAL: {
+      label: t?.staff.connection.fallback ?? 'Local Fallback (BroadcastChannel)',
+      badgeClass: 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400',
+      icon: Activity,
+    },
+    CONNECTING: {
+      label: t?.staff.connection.connecting ?? 'Connecting...',
+      badgeClass: 'border-sky-500/30 bg-sky-500/10 text-sky-600 dark:text-sky-400 animate-pulse',
+      icon: Activity,
+    },
+    DISCONNECTED: {
+      label: t?.staff.connection.disconnected ?? 'Disconnected',
+      badgeClass: 'border-zinc-500/30 bg-zinc-500/10 text-zinc-600 dark:text-zinc-400',
+      icon: WifiOff,
+    },
+  };
+  return map[status] ?? map.DISCONNECTED;
+}
+
 function ConnectionStatusBadge({
   status,
   t,
@@ -117,31 +149,16 @@ function ConnectionStatusBadge({
   status: RealtimeConnectionStatus;
   t?: TranslationDictionary;
 }) {
-  let label = 'Disconnected';
-  let badgeClass = 'border-zinc-500/30 bg-zinc-500/10 text-zinc-600 dark:text-zinc-400';
-  let Icon = WifiOff;
-
-  if (status === 'CONNECTED') {
-    label = t?.staff.connection.connected ?? 'Connected (Supabase)';
-    badgeClass = 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400';
-    Icon = Wifi;
-  } else if (status === 'FALLBACK_LOCAL') {
-    label = t?.staff.connection.fallback ?? 'Local Fallback (BroadcastChannel)';
-    badgeClass = 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400';
-    Icon = Activity;
-  } else if (status === 'CONNECTING') {
-    label = t?.staff.connection.connecting ?? 'Connecting...';
-    badgeClass = 'border-sky-500/30 bg-sky-500/10 text-sky-600 dark:text-sky-400 animate-pulse';
-    Icon = Activity;
-  }
+  const config = getConnectionConfig(status, t);
+  const Icon = config.icon;
 
   return (
     <Badge
       variant="outline"
-      className={cn('gap-1.5 font-medium whitespace-nowrap', badgeClass)}
+      className={cn('gap-1.5 font-medium whitespace-nowrap', config.badgeClass)}
     >
       <Icon className="size-3.5 shrink-0" />
-      <span>{label}</span>
+      <span>{config.label}</span>
     </Badge>
   );
 }

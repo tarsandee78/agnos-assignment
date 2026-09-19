@@ -9,26 +9,29 @@ export interface LanguageToggleProps {
   currentLang: Language;
   onLanguageChange: (lang: Language) => void;
   className?: string;
-  size?: 'sm' | 'default';
 }
 
+/**
+ * LanguageToggle Component.
+ *
+ * Fully compliant with AGENTS.md §4.4 (Minimum 44x44px touch targets).
+ */
 export function LanguageToggle({
   currentLang,
   onLanguageChange,
   className,
-  size = 'default',
 }: LanguageToggleProps) {
   return (
     <div
       role="group"
       aria-label="Select Language"
       className={cn(
-        'inline-flex items-center rounded-lg bg-muted/80 p-0.5 border border-border/60 shadow-2xs select-none',
+        'inline-flex items-center rounded-xl bg-muted/80 p-1 border border-border/60 shadow-2xs select-none min-h-[44px]',
         className
       )}
     >
       <div className="flex items-center pl-2 pr-1 text-muted-foreground" aria-hidden="true">
-        <Globe className="size-3.5" />
+        <Globe className="size-4" />
       </div>
 
       <button
@@ -36,9 +39,9 @@ export function LanguageToggle({
         onClick={() => onLanguageChange('th')}
         aria-pressed={currentLang === 'th'}
         className={cn(
-          'rounded-md font-medium transition-all min-h-[32px] px-2.5 text-xs',
+          'rounded-lg font-medium transition-all min-h-[36px] min-w-[40px] px-3 text-xs touch-target cursor-pointer flex items-center justify-center',
           currentLang === 'th'
-            ? 'bg-background text-foreground shadow-2xs font-bold'
+            ? 'bg-background text-foreground shadow-2xs font-bold ring-1 ring-border/50'
             : 'text-muted-foreground hover:text-foreground'
         )}
       >
@@ -52,9 +55,9 @@ export function LanguageToggle({
         onClick={() => onLanguageChange('en')}
         aria-pressed={currentLang === 'en'}
         className={cn(
-          'rounded-md font-medium transition-all min-h-[32px] px-2.5 text-xs',
+          'rounded-lg font-medium transition-all min-h-[36px] min-w-[40px] px-3 text-xs touch-target cursor-pointer flex items-center justify-center',
           currentLang === 'en'
-            ? 'bg-background text-foreground shadow-2xs font-bold'
+            ? 'bg-background text-foreground shadow-2xs font-bold ring-1 ring-border/50'
             : 'text-muted-foreground hover:text-foreground'
         )}
       >

@@ -20,8 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { useLanguage } from "@/hooks/useLanguage";
-import { type Language, type TranslationDictionary } from "@/lib/i18n/translations";
+import { translations, type Language, type TranslationDictionary } from "@/lib/i18n/translations";
 
 export interface StepContactInfoProps {
   /** React Hook Form instance for PatientFormData */
@@ -87,8 +86,7 @@ export function StepContactInfo({
   className,
   t: propT,
 }: StepContactInfoProps) {
-  const defaultHook = useLanguage("agnos_lang_patient", "th");
-  const t = propT || defaultHook.t;
+  const t = propT || translations.th;
 
   const {
     register,
@@ -160,13 +158,16 @@ export function StepContactInfo({
                     aria-describedby={
                       contactErrors?.phoneNumber
                         ? "phoneNumber-error"
-                        : undefined
+                        : "phoneNumber-hint"
                     }
                     className="min-h-[44px] h-11 text-base touch-target tabular-nums"
                   />
                 </div>
               )}
             />
+            <p id="phoneNumber-hint" className="text-xs text-muted-foreground">
+              {t.contact.phoneHint}
+            </p>
             <FieldError
               id="phoneNumber-error"
               error={contactErrors?.phoneNumber?.message}
@@ -190,11 +191,14 @@ export function StepContactInfo({
               autoComplete="email"
               aria-invalid={Boolean(contactErrors?.email)}
               aria-describedby={
-                contactErrors?.email ? "email-error" : undefined
+                contactErrors?.email ? "email-error" : "email-hint"
               }
               className="min-h-[44px] h-11 text-base touch-target"
               {...register("contact.email")}
             />
+            <p id="email-hint" className="text-xs text-muted-foreground">
+              {t.contact.emailHint}
+            </p>
             <FieldError
               id="email-error"
               error={contactErrors?.email?.message}
@@ -231,11 +235,14 @@ export function StepContactInfo({
             autoComplete="street-address"
             aria-invalid={Boolean(contactErrors?.address)}
             aria-describedby={
-              contactErrors?.address ? "address-error" : undefined
+              contactErrors?.address ? "address-error" : "address-hint"
             }
             className="min-h-[100px] text-base touch-target leading-relaxed"
             {...register("contact.address")}
           />
+          <p id="address-hint" className="text-xs text-muted-foreground">
+            {t.contact.addressHint}
+          </p>
           <FieldError
             id="address-error"
             error={contactErrors?.address?.message}

@@ -27,7 +27,8 @@ export default function PatientPage() {
   const { lang, setLang, t } = useLanguage("agnos_lang_patient", "th");
   const [currentStep, setCurrentStep] = React.useState<PatientFormStep>(1);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [submissionError, setSubmissionError] = React.useState<string | null>(null);
+  const [submissionErrorKey, setSubmissionErrorKey] = React.useState<keyof typeof t.errors | null>(null);
+  const submissionErrorMessage = submissionErrorKey ? t.errors[submissionErrorKey] : null;
   const [isSuccessOpen, setIsSuccessOpen] = React.useState(false);
   const [submittedData, setSubmittedData] = React.useState<PatientFormData | null>(null);
   const [submittedAt, setSubmittedAt] = React.useState<string | null>(null);
@@ -96,7 +97,7 @@ export default function PatientPage() {
 
   // Final Form Submission handler
   const handleSubmit = async () => {
-    setSubmissionError(null);
+    setSubmissionErrorKey(null);
     setIsSubmitting(true);
 
     try {
@@ -105,13 +106,13 @@ export default function PatientPage() {
       if (!isFormValid) {
         const currentErrors = form.formState.errors;
         if (currentErrors.personal) {
-          setSubmissionError(lang === "th" ? "กรุณาตรวจสอบและแก้ไขข้อผิดพลาดในขั้นตอนที่ 1 (ข้อมูลส่วนตัว)" : "Please review and fix errors in Step 1 (Personal Details)");
+          setSubmissionErrorKey("step1");
         } else if (currentErrors.contact) {
-          setSubmissionError(lang === "th" ? "กรุณาตรวจสอบและแก้ไขข้อผิดพลาดในขั้นตอนที่ 2 (ข้อมูลติดต่อและที่อยู่)" : "Please review and fix errors in Step 2 (Contact & Address)");
+          setSubmissionErrorKey("step2");
         } else if (currentErrors.emergency) {
-          setSubmissionError(lang === "th" ? "กรุณาตรวจสอบและแก้ไขข้อมูลผู้ติดต่อฉุกเฉิน" : "Please review and fix errors in Emergency Contact");
+          setSubmissionErrorKey("emergency");
         } else {
-          setSubmissionError(lang === "th" ? "กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วนถูกต้อง" : "Please ensure all required fields are correctly completed");
+          setSubmissionErrorKey("general");
         }
         setIsSubmitting(false);
         return;
@@ -136,7 +137,7 @@ export default function PatientPage() {
       setIsSuccessOpen(true);
     } catch (err) {
       console.error("[PatientPage] Submission failed:", err);
-      setSubmissionError(lang === "th" ? "เกิดข้อผิดพลาดที่ไม่คาดคิด กรุณาลองใหม่อีกครั้ง" : "An unexpected error occurred while submitting. Please try again.");
+      setSubmissionErrorKey("unexpected");
     } finally {
       setIsSubmitting(false);
     }
@@ -152,7 +153,7 @@ export default function PatientPage() {
     setSubmittedData(null);
     setSubmittedAt(null);
     setReferenceId("");
-    setSubmissionError(null);
+    setSubmissionErrorKey(null);
   };
 
   return (
@@ -239,7 +240,7 @@ export default function PatientPage() {
             onBack={() => setCurrentStep(2)}
             onEditStep={(step) => setCurrentStep(step)}
             isSubmitting={isSubmitting}
-            submissionError={submissionError}
+            submissionError={submissionErrorMessage}
             lang={lang}
             t={t}
           />
@@ -254,6 +255,7 @@ export default function PatientPage() {
         referenceId={referenceId}
         submittedAt={submittedAt || undefined}
         onResetAndNew={handleResetAndNew}
+        lang={lang}
         t={t}
       />
     </div>

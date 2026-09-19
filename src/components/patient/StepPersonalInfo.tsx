@@ -21,8 +21,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { useLanguage } from "@/hooks/useLanguage";
-import { type Language, type TranslationDictionary } from "@/lib/i18n/translations";
+import { translations, type Language, type TranslationDictionary } from "@/lib/i18n/translations";
 
 export interface StepPersonalInfoProps {
   /** React Hook Form instance for PatientFormData */
@@ -85,8 +84,7 @@ export function StepPersonalInfo({
   className,
   t: propT,
 }: StepPersonalInfoProps) {
-  const defaultHook = useLanguage("agnos_lang_patient", "th");
-  const t = propT || defaultHook.t;
+  const t = propT || translations.th;
 
   const {
     register,

@@ -43,7 +43,15 @@ export function NextPatientDialog({
   };
 
   const hasActiveData = Boolean(patientData || isSubmitted);
-  const isThai = t?.common.back === 'ย้อนกลับ' || !t;
+  const dialogT = t?.staff.nextPatientDialog ?? {
+    title: 'Prepare for Next Patient?',
+    subtitle: 'Prepare for next patient / Clear session',
+    descHasData: 'This will clear all current patient intake data and live presence state from this monitor screen, readying the room for the next patient.',
+    descEmpty: 'The dashboard is currently empty. Resetting will re-verify the room status.',
+    warningNotice: 'Make sure any required medical details have been recorded before clearing. This action cannot be undone.',
+    cancel: 'Cancel',
+    confirm: 'Confirm & Reset',
+  };
 
   const buttonLabel = label ?? (t?.staff.nextPatient ?? 'Next Patient');
 
@@ -59,7 +67,7 @@ export function NextPatientDialog({
           'gap-1.5 min-h-[44px] px-3.5 text-xs font-semibold touch-target cursor-pointer shadow-xs',
           className
         )}
-        title={isThai ? 'เตรียมรับผู้ป่วยรายถัดไป' : 'Prepare for next patient'}
+        title={dialogT.subtitle}
       >
         <UserPlus className="size-3.5" aria-hidden="true" />
         <span>{buttonLabel}</span>
@@ -78,28 +86,18 @@ export function NextPatientDialog({
             </div>
 
             <DialogTitle className="text-xl font-bold tracking-tight text-foreground">
-              {isThai ? 'เตรียมรับผู้ป่วยรายถัดไป?' : 'Prepare for Next Patient?'}
+              {dialogT.title}
             </DialogTitle>
 
             <DialogDescription className="text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed">
-              {hasActiveData
-                ? (isThai
-                    ? 'ระบบจะล้างข้อมูลคนไข้ปัจจุบันและสถานะการกรอกทั้งหมดออกจากหน้าจอ เพื่อเตรียมพร้อมรับคนไข้รายใหม่'
-                    : 'This will clear all current patient intake data and live presence state from this monitor screen, readying the room for the next patient.')
-                : (isThai
-                    ? 'หน้าจอไม่มีข้อมูลคนไข้ตกค้าง การรีเซ็ตจะตรวจสอบสถานะห้องใหม่อีกครั้ง'
-                    : 'The dashboard is currently empty. Resetting will re-verify the room status.')}
+              {hasActiveData ? dialogT.descHasData : dialogT.descEmpty}
             </DialogDescription>
           </DialogHeader>
 
           {hasActiveData && (
             <div className="my-2 rounded-xl bg-amber-500/10 border border-amber-500/20 p-3.5 flex items-start gap-2.5 text-xs text-amber-800 dark:text-amber-300">
               <AlertTriangle className="size-4 shrink-0 mt-0.5" aria-hidden="true" />
-              <span>
-                {isThai
-                  ? 'โปรดตรวจสอบให้แน่ใจว่าได้บันทึกข้อมูลสำคัญเรียบร้อยแล้ว การกระทำนี้ไม่สามารถย้อนกลับได้'
-                  : 'Make sure any required medical details have been recorded before clearing. This action cannot be undone.'}
-              </span>
+              <span>{dialogT.warningNotice}</span>
             </div>
           )}
 
@@ -110,7 +108,7 @@ export function NextPatientDialog({
               onClick={() => setOpen(false)}
               className="w-full sm:w-auto min-h-[44px] text-sm font-medium touch-target cursor-pointer hover:bg-muted"
             >
-              {isThai ? 'ยกเลิก' : 'Cancel'}
+              {dialogT.cancel}
             </Button>
 
             <Button
@@ -119,7 +117,7 @@ export function NextPatientDialog({
               className="w-full sm:w-auto flex-1 min-h-[44px] text-sm font-semibold touch-target shadow-sm cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90"
             >
               <RotateCcw className="size-4 mr-2" aria-hidden="true" />
-              {isThai ? 'ยืนยันเริ่มรายใหม่' : 'Confirm & Reset'}
+              {dialogT.confirm}
             </Button>
           </DialogFooter>
         </DialogContent>

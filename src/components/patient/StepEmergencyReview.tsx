@@ -24,8 +24,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { useLanguage } from "@/hooks/useLanguage";
-import { type Language, type TranslationDictionary } from "@/lib/i18n/translations";
+import { translations, type Language, type TranslationDictionary } from "@/lib/i18n/translations";
 
 export interface StepEmergencyReviewProps {
   form: UseFormReturn<PatientFormData, any, any>;
@@ -79,27 +78,29 @@ function SummarySection({
           <span>{title}</span>
         </div>
         {onEdit && (
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             onClick={onEdit}
-            className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 font-medium py-1 px-2 rounded-md hover:bg-primary/10 transition-colors cursor-pointer"
+            className="h-8 min-h-[44px] px-2.5 text-xs text-primary hover:text-primary/80 hover:bg-primary/10 touch-target cursor-pointer"
           >
-            <Edit3 className="size-3" aria-hidden="true" />
+            <Edit3 className="size-3.5 mr-1" aria-hidden="true" />
             <span>{editLabel}</span>
-          </button>
+          </Button>
         )}
       </div>
 
-      <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+      <div className="space-y-1.5 divide-y divide-border/30">
         {items.map((item, idx) => (
-          <div key={idx} className="flex flex-col">
-            <dt className="text-muted-foreground text-[11px] font-medium">{item.label}</dt>
-            <dd className="font-medium text-foreground truncate mt-0.5">
+          <div key={idx} className="flex justify-between items-baseline pt-1.5 text-xs sm:text-sm gap-2">
+            <span className="text-muted-foreground shrink-0">{item.label}</span>
+            <span className="font-medium text-foreground text-right truncate">
               {item.value || <span className="text-muted-foreground/60 italic">—</span>}
-            </dd>
+            </span>
           </div>
         ))}
-      </dl>
+      </div>
     </div>
   );
 }
@@ -125,8 +126,7 @@ export function StepEmergencyReview({
   className,
   t: propT,
 }: StepEmergencyReviewProps) {
-  const defaultHook = useLanguage("agnos_lang_patient", "th");
-  const t = propT || defaultHook.t;
+  const t = propT || translations.th;
 
   const {
     register,

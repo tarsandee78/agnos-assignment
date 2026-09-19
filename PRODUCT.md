@@ -1,7 +1,7 @@
-# Product Context & Durable Truth
+# Product Context & Durable Truth (`PRODUCT.md`)
 
 ## 1. Product Identity & Purpose
-**Agnos Real-Time Patient Intake & Staff Monitoring System** is a mission-critical clinical health-tech application bridging patients and healthcare staff during outpatient intake.
+**Agnos Real-Time Patient Intake & Staff Monitoring System** is a mission-critical clinical health-tech application bridging patients and healthcare personnel during hospital outpatient intake.
 The system provides zero-friction, accessible personal detail intake on mobile devices for patients, paired with a high-density, real-time dashboard for triage nurses and medical registrars to oversee intake live without database overhead.
 
 ---
@@ -9,41 +9,47 @@ The system provides zero-friction, accessible personal detail intake on mobile d
 ## 2. Target Audiences & Use Cases
 
 ### A. Patients (`/patient`)
-- **Demographics:** All demographics, ranging from tech-savvy young adults to elderly patients and individuals under physical or emotional stress during hospital check-in.
-- **Needs:** Low cognitive load, crystal-clear typography, accessible touch targets, and reassurance that their confidential health details are submitted securely and accurately.
-- **Environment:** Mobile devices (iOS Safari, Android Chrome) in hospital waiting areas, often on cellular networks or spotty guest Wi-Fi.
+- **Demographics:** Outpatients across all age groups (from digital natives to elderly patients and individuals experiencing acute physical or emotional discomfort).
+- **Primary Need:** Single-task focus, low cognitive strain, accessible touch affordances, and reassurance of confidential, error-free submission.
+- **Context:** Typically operated on personal mobile devices (iOS Safari, Android Chrome) in hospital reception or waiting areas.
 
 ### B. Medical Staff (`/staff`)
-- **Demographics:** Hospital triage staff, nurses, receptionists, and medical records administrators.
-- **Needs:** Rapid glanceability, high information density, live progress tracking as patients fill in details, and clear status indicators (Actively filling in, Idle, Submitted).
-- **Environment:** Desktop workstations (Full HD / ultrawide monitors) with multi-window workflows where zero cumulative layout shift (CLS = 0) and low-noise presence updates are vital.
+- **Demographics:** Hospital triage nurses, check-in administrators, and medical records personnel.
+- **Primary Need:** Instant scannability, dense real-time intake tracking, zero distraction from UI jitter, and calm patient status visibility.
+- **Context:** High-throughput desktop workstations (Full HD / Ultrawide) managing concurrent outpatient queues.
 
 ---
 
-## 3. Core Operational Modes
-
-### 1. Task Mode (`/patient`)
-- **Design Priority:** Single-focus progression, distraction-free clinical wizard.
-- **Mobile-First UX:**
-  - Strict minimum touch targets: **44x44px** (`min-h-[44px]`, `min-w-[44px]`) on all interactive inputs, buttons, checkboxes, and select controls (WCAG 2.5.5 / 2.5.8).
-  - Font Size: **16px (`text-base`)** minimum on all form inputs to prevent iOS Safari auto-zoom behavior.
-  - Step Progression: Stepper layout dividing Personal, Contact, and Medical/Emergency information to reduce cognitive strain down to 320px viewport widths.
-  - Validation UX: Validation triggered `onBlur` or `onSubmit` via Zod to avoid aggressive, premature error states while typing.
-
-### 2. Operate Mode (`/staff`)
-- **Design Priority:** Real-time visibility, fast scannability, and operational stability.
-- **Desktop-Optimized Dashboard:**
-  - High information density with tabular cards and clear semantic grouping.
-  - **Zero Layout Shift (CLS = 0):** Stable UI containers where live-streamed keystrokes never cause visual jumping or resizing.
-  - **Calm Presence System:** Subtle, non-intrusive status badges:
-    - `typing` / **Actively filling in**: Pulse green indicator
-    - `idle` / **Inactive**: Calm amber/gray indicator
-    - `submitted` / **Submitted**: Solid emerald badge
-  - Direct peer-to-peer sync via Supabase Realtime Broadcast & Presence channels (with BroadcastChannel fallback for multi-tab testing).
+## 3. Operational Constraints
+1. **Zero Database Overhead (Direct Peer-to-Peer Sync):** Form state streams directly between clients using Supabase Realtime (Broadcast and Presence). No sensitive draft data is permanently stored in a remote database until formal submission.
+2. **Local Multi-Tab Fallback:** When internet connectivity is offline or Supabase credentials are not configured, the system must seamlessly fall back to the browser's native `BroadcastChannel` API for local dual-screen evaluation.
+3. **Unstable Network Resilience:** Mobile network connections in hospital waiting rooms fluctuate; presence tracking and broadcast reconnection must self-heal gracefully without page reloads.
+4. **Zero Layout Shift (CLS = 0):** On the staff dashboard, continuous keystroke streaming must never cause visual reflows, jumps, or accordion expansions.
 
 ---
 
-## 4. Voice, Tone & Aesthetic Principles
-- **Clinical Health-Tech Minimalist:** Clean, professional, and uncluttered. Avoid decorative fluff, aggressive gradients, or playful cartoonish elements.
-- **Calm & Reassuring:** Medical hospital visits inherently induce anxiety; the interface uses soothing neutrals and precise Agnos Brand Blue (`#0052CC`) to evoke trust, security, and competence.
-- **Inclusive Accessibility:** Built from the foundation up to meet WCAG AA standards with minimum contrast ratio $\ge 4.5:1$ across all informational text and interactive components.
+## 4. Core Operational Modes
+
+### 4.1 Task Mode (`/patient`)
+- **Focus:** Mobile-first, stepper-based linear intake flow.
+- **Functional Requirements:**
+  - Enforce minimum 44x44px touch targets on all interactive elements to prevent miss-clicks.
+  - Set minimum 16px font size on all input fields to prevent iOS Safari auto-zooming.
+  - Defer validation errors to `onBlur` and `onSubmit` to prevent aggressive, premature red states while typing.
+  - Multi-step organization (Personal, Contact, Emergency/Medical) to minimize on-screen clutter down to 320px screens.
+
+### 4.2 Operate Mode (`/staff`)
+- **Focus:** High-density, real-time monitoring matrix.
+- **Functional Requirements:**
+  - Fixed-dimension cards and tabular structures that hold incoming live data without layout shifts.
+  - Calm, ambient presence status tracking:
+    - **Actively filling in (`typing`):** Active presence with subtle pulse indicator.
+    - **Inactive (`idle`):** Muted calm indicator signaling pause without triggering false alarms.
+    - **Submitted (`submitted`):** Clear confirmation indicator upon final patient submission.
+
+---
+
+## 5. Voice, Tone & Aesthetic Identity
+- **Clinical Health-Tech Minimalist:** Utilitarian, clean, structured, and professional. Free of ornamental gradients, unnecessary drop shadows, and whimsical animations.
+- **Calm & Reassuring:** Medical hospital check-in can be stressful. Visual treatments must evoke reliability, precision, and privacy through generous white space and Agnos Brand Blue (`#0052CC`).
+- **Inclusive Accessibility:** Built to conform strictly with WCAG 2.1 AA standards across typography, interactive target sizing, and color contrast.

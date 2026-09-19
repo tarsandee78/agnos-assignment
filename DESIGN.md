@@ -7,7 +7,7 @@
 ## 1. Design Philosophy: Clinical Health-Tech
 - **Clarity over Cleverness:** Healthcare interfaces must be immediately understood under stressful clinical conditions.
 - **Calm Authority:** Clean white space, structured tabular layout, and purposeful color usage without visual clutter or saturated gradients.
-- **Accessible by Default:** All text meets or exceeds WCAG 2.1 AA contrast requirements ($\ge 4.5:1$ for standard text, $\ge 3:1$ for large text and interactive components).
+- **Accessible by Default:** All text meets or exceeds WCAG 2.1 AA contrast requirements ($\ge 4.5:1$ for standard text, $\ge 3:1$ for large text and UI boundaries).
 - **Physical Affordance on Touch:** Generous touch targets ($\ge 44\text{px}$) designed for varied motor capabilities and mobile devices.
 
 ---
@@ -36,27 +36,34 @@ All color tokens are implemented natively in Tailwind CSS v4 via CSS variables a
 | `--ring` | `oklch(0.48 0.20 260.5)` | Accessible focus indicator outline |
 
 ### 2.3 Semantic Status & Clinical Indicators
-| State / Intent | Token | OKLCH Value | Light Mode Meaning | Contrast |
+| State / Intent | Token | OKLCH Value | Role & Usage | WCAG AA Contrast |
 | :--- | :--- | :--- | :--- | :--- |
-| **Success** | `--success` | `oklch(0.52 0.17 145)` | Form submitted, validated field, online status | $\ge 4.5:1$ |
-| **Warning** | `--warning` | `oklch(0.68 0.16 75)` | Inactive patient, incomplete step, cautionary notice | $\ge 4.5:1$ on dark |
-| **Destructive**| `--destructive` | `oklch(0.50 0.22 27)` | Validation error, critical missing input, cancel | $\ge 4.6:1$ |
-| **Info / Focus**| `--info` | `oklch(0.48 0.20 260.5)`| Active typing indicator, patient guidance note | $\ge 7.2:1$ |
+| **Success** | `--success`<br>`--success-foreground` | `oklch(0.52 0.17 145)`<br>`oklch(0.99 0 0)` | Form submitted, validated field, online status.<br>Badge fill & foreground text. | $\ge 4.5:1$ text on white;<br>$\ge 4.5:1$ foreground on fill |
+| **Warning** | `--warning`<br>`--warning-foreground` | `oklch(0.68 0.16 75)`<br>`oklch(0.18 0.03 75)` | Incomplete step pill, cautionary alerts.<br>`--warning` is pill fill; `--warning-foreground` is text. | $\ge 11.2:1$ foreground on pill;<br>$\ge 12.0:1$ text on white |
+| **Inactive** | `--inactive`<br>`--inactive-foreground` | `oklch(0.85 0.015 250)`<br>`oklch(0.38 0.03 260)` | Patient idle state, calm non-alarm presence pill.<br>Avoids triage anxiety with soft neutral slate. | $\ge 5.8:1$ text on white;<br>$\ge 4.5:1$ foreground on pill |
+| **Destructive** | `--destructive`<br>`--destructive-foreground` | `oklch(0.50 0.22 27)`<br>`oklch(0.99 0 0)` | Validation error, critical missing input, cancel.<br>Accessible medical red. | $\ge 4.6:1$ text on white;<br>$\ge 4.6:1$ foreground on fill |
+| **Info / Active** | `--info`<br>`--info-foreground` | `oklch(0.48 0.20 260.5)`<br>`oklch(0.99 0 0)` | Active typing indicator, patient guidance note.<br>Agnos brand blue tint. | $\ge 7.2:1$ text on white;<br>$\ge 7.2:1$ foreground on fill |
+
+> [!NOTE]
+> For warning indicators, the soft amber fill (`--warning`) is strictly paired with dark amber-brown text (`--warning-foreground`), guaranteeing WCAG AA $\ge 4.5:1$ compliance and avoiding low-contrast yellow text traps.
 
 ### 2.4 Dark Mode Palette Complement
 The system provides a clinical dark mode preserving high contrast without harsh pure black (`#000000`):
 - Canvas: `--background: oklch(0.14 0.01 260)`
 - Surface: `--card: oklch(0.18 0.015 260)`
 - Brand Primary: `--primary: oklch(0.65 0.18 255)` (lifted lightness for high contrast against dark ground)
+- Inactive Pill: `--inactive: oklch(0.32 0.02 260)`, `--inactive-foreground: oklch(0.78 0.015 260)`
+- Warning Pill: `--warning: oklch(0.75 0.16 75)`, `--warning-foreground: oklch(0.14 0.03 75)`
 - Borders: `--border: oklch(0.30 0.015 260)`
 
 ---
 
 ## 3. Typography Hierarchy
 
-### 3.1 Typefaces
-- **Primary Latin Font:** `Geist Sans`, `Inter`, `-apple-system`, `BlinkMacSystemFont`, `Segoe UI`, `sans-serif`.
-- **Thai System Fallback:** `Sarabun`, `Noto Sans Thai`, `sans-serif`.
+### 3.1 Typefaces & CSS Mapping
+- **Primary Latin Font:** `var(--font-sans)`, `var(--font-geist-sans)`, `Inter`, ui-sans-serif, system-ui, sans-serif.
+- **Thai System Fallback:** `Sarabun`, `Noto Sans Thai`, sans-serif.
+- **Monospace Font:** `var(--font-geist-mono)`, ui-monospace, monospace.
 
 ### 3.2 Type Scale
 | Level | Font Size | Line Height | Weight | Application |
@@ -102,17 +109,17 @@ Based on a predictable 4px / 8px incremental grid:
 ## 5. Mode Specifications
 
 ### 5.1 Task Mode (`/patient`)
-- **Viewport Target:** Mobile-first (320px to 480px priority, gracefully scaling to tablet/desktop).
-- **Stepping:** Multi-step wizard with clear numerical progress indicators (e.g. "Step 1 of 3: Personal Information").
-- **Visual Feedback:** Fields highlight in Agnos Blue `--ring` on focus; errors display beneath fields with `--destructive` icon and copy.
+- **Target Viewport:** Mobile-first (320px to 480px, responsive to desktop).
+- **Stepping:** Progress indicator displaying step number, title, and percentage.
+- **Form Affordance:** Accessible focus ring (`--ring`) on active input; destructive validation hints positioned directly beneath invalid fields.
 
 ### 5.2 Operate Mode (`/staff`)
-- **Viewport Target:** Desktop widescreen (1280px+).
-- **Layout Shift:** Container sizes are strictly reserved (`min-height` / tabular layout) ensuring **CLS = 0**.
-- **Live Sync Presence Indicators:**
-  - **Typing / Active:** Subtle pulsing green dot (`bg-emerald-500`) + "Actively filling in"
-  - **Idle / Inactive:** Steady muted amber dot (`bg-amber-400`) + "Inactive"
-  - **Submitted:** Solid emerald check badge (`bg-emerald-600 text-white`) + "Submitted"
+- **Target Viewport:** Desktop-optimized (1280px+).
+- **Layout Stability:** Tabular structures with fixed-size skeletons ensuring **Zero Cumulative Layout Shift (CLS = 0)**.
+- **Calm Presence System:**
+  - **Actively filling in (`typing`):** Subtle pulsing green dot (`bg-emerald-500`) + "Actively filling in"
+  - **Inactive (`idle`):** Calm neutral slate dot (`bg-slate-400` / `--inactive-foreground`) + "Inactive" (prevents false-alarm triage anxiety)
+  - **Submitted (`submitted`):** Solid emerald check badge (`bg-emerald-600 text-white`) + "Submitted"
 
 ---
 

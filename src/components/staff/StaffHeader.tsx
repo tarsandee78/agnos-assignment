@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import {
   useStaffStore,
@@ -35,7 +37,7 @@ export interface StaffHeaderProps {
 
 /**
  * Isolated timer component that tracks inactivity or last-active duration.
- * Runs a 1-second interval locally to prevent re-rendering the header or page.
+ * Runs a 1-second interval only during idle state to prevent re-rendering the header or page.
  */
 function ActivityTimeIndicator() {
   const patientStatus = usePatientStatus();
@@ -46,8 +48,8 @@ function ActivityTimeIndicator() {
   const [now, setNow] = useState<number>(Date.now());
 
   useEffect(() => {
-    // Only tick when in idle or typing state
-    if (patientStatus !== 'idle' && patientStatus !== 'typing') {
+    // Only tick when in idle state where elapsed seconds must increment live
+    if (patientStatus !== 'idle') {
       return;
     }
 
@@ -105,53 +107,55 @@ function ActivityTimeIndicator() {
 }
 
 // ============================================================================
-// 3. Connection Status Badge Sub-component
+// 3. Connection Status Configuration & Sub-component
 // ============================================================================
 
+interface ConnectionConfig {
+  label: string;
+  badgeClass: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
+
+const CONNECTION_CONFIGS: Record<RealtimeConnectionStatus, ConnectionConfig> = {
+  CONNECTED: {
+    label: 'Connected (Supabase)',
+    badgeClass:
+      'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+    icon: Wifi,
+  },
+  FALLBACK_LOCAL: {
+    label: 'Local Fallback (BroadcastChannel)',
+    badgeClass:
+      'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400',
+    icon: Activity,
+  },
+  CONNECTING: {
+    label: 'Connecting...',
+    badgeClass:
+      'border-sky-500/30 bg-sky-500/10 text-sky-600 dark:text-sky-400 animate-pulse',
+    icon: Activity,
+  },
+  DISCONNECTED: {
+    label: 'Disconnected',
+    badgeClass:
+      'border-zinc-500/30 bg-zinc-500/10 text-zinc-600 dark:text-zinc-400',
+    icon: WifiOff,
+  },
+};
+
 function ConnectionStatusBadge({ status }: { status: RealtimeConnectionStatus }) {
-  switch (status) {
-    case 'CONNECTED':
-      return (
-        <Badge
-          variant="outline"
-          className="border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 gap-1.5 font-medium whitespace-nowrap"
-        >
-          <Wifi className="size-3.5 shrink-0" />
-          <span>Connected (Supabase)</span>
-        </Badge>
-      );
-    case 'FALLBACK_LOCAL':
-      return (
-        <Badge
-          variant="outline"
-          className="border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400 gap-1.5 font-medium whitespace-nowrap"
-        >
-          <Activity className="size-3.5 shrink-0" />
-          <span>Local Fallback (BroadcastChannel)</span>
-        </Badge>
-      );
-    case 'CONNECTING':
-      return (
-        <Badge
-          variant="outline"
-          className="border-sky-500/30 bg-sky-500/10 text-sky-600 dark:text-sky-400 gap-1.5 font-medium animate-pulse whitespace-nowrap"
-        >
-          <Activity className="size-3.5 shrink-0" />
-          <span>Connecting...</span>
-        </Badge>
-      );
-    case 'DISCONNECTED':
-    default:
-      return (
-        <Badge
-          variant="outline"
-          className="border-zinc-500/30 bg-zinc-500/10 text-zinc-600 dark:text-zinc-400 gap-1.5 font-medium whitespace-nowrap"
-        >
-          <WifiOff className="size-3.5 shrink-0" />
-          <span>Disconnected</span>
-        </Badge>
-      );
-  }
+  const config = CONNECTION_CONFIGS[status] ?? CONNECTION_CONFIGS.DISCONNECTED;
+  const Icon = config.icon;
+
+  return (
+    <Badge
+      variant="outline"
+      className={cn('gap-1.5 font-medium whitespace-nowrap', config.badgeClass)}
+    >
+      <Icon className="size-3.5 shrink-0" />
+      <span>{config.label}</span>
+    </Badge>
+  );
 }
 
 // ============================================================================
@@ -162,7 +166,7 @@ function ConnectionStatusBadge({ status }: { status: RealtimeConnectionStatus })
  * Modular Staff Dashboard Header.
  *
  * Encapsulates system title, room status, connection badges, Zero-CLS patient presence badge,
- * elapsed inactivity timer, and state reset actions.
+ * elapsed inactivity timer, and state reset actions. Complies with 44px healthcare touch targets.
  */
 export function StaffHeader({
   roomId = DEFAULT_ROOM_ID,
@@ -209,17 +213,17 @@ export function StaffHeader({
         {/* Zero-CLS Status Badge */}
         <StatusBadge status={patientStatus} />
 
-        {/* Inactivity / Activity Duration Indicator */}
-        <div className="hidden md:flex items-center px-2 py-1 rounded-md bg-muted/40 border text-xs">
+        {/* Inactivity / Activity Duration Indicator (visible on all viewports) */}
+        <div className="flex items-center px-2.5 py-1.5 rounded-md bg-muted/40 border text-xs min-h-[36px]">
           <ActivityTimeIndicator />
         </div>
 
-        {/* Reset State Button */}
+        {/* Reset State Button (Accessible 44x44px touch target per AGENTS.md §4.4) */}
         <Button
           variant="outline"
           size="sm"
           onClick={resetStaffState}
-          className="gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+          className="gap-1.5 text-xs text-muted-foreground hover:text-foreground min-h-[44px] px-3 touch-target"
           title="Reset intake monitor state"
         >
           <RotateCcw className="size-3.5" />

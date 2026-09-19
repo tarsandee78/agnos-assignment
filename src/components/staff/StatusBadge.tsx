@@ -8,10 +8,6 @@ import type { PatientPresenceStatus } from '@/lib/realtime';
 
 export interface StatusBadgeProps extends React.HTMLAttributes<HTMLDivElement> {
   status: PatientPresenceStatus;
-  /** Label to display when status is 'offline'. Defaults to 'Waiting for patient'. */
-  offlineLabel?: 'Waiting for patient' | 'Offline';
-  /** Whether to show the presence status dot/ping indicator. Defaults to true. */
-  showIndicator?: boolean;
   className?: string;
 }
 
@@ -64,48 +60,42 @@ const STATUS_CONFIGS: Record<PatientPresenceStatus, StatusConfig> = {
 /**
  * Zero-CLS Patient Presence Status Badge.
  *
- * Designed with a stable minimum width (`min-w-[150px]`) and centered flex layout
+ * Designed with a rock-solid width (`w-[160px] min-w-[160px]`) and centered flex layout
  * to ensure Cumulative Layout Shift (CLS) = 0 during presence transitions between
  * 'typing', 'idle', 'submitted', and 'offline'.
  */
 export function StatusBadge({
   status,
-  offlineLabel,
-  showIndicator = true,
   className,
   ...props
 }: StatusBadgeProps) {
   const config = STATUS_CONFIGS[status] ?? STATUS_CONFIGS.offline;
-  const label =
-    status === 'offline' && offlineLabel ? offlineLabel : config.label;
 
   return (
     <div
       role="status"
       aria-live="polite"
       className={cn(
-        // Zero-CLS layout: fixed min-width, fixed height, centered content
-        'inline-flex min-w-[150px] items-center justify-center gap-1.5 rounded-full border px-3 py-1',
+        // Zero-CLS layout: fixed width, centered content, no layout shifts across states
+        'inline-flex w-[160px] min-w-[160px] items-center justify-center gap-1.5 rounded-full border px-3 py-1',
         'text-xs font-semibold whitespace-nowrap select-none transition-colors duration-150',
         config.badgeClass,
         className
       )}
       {...props}
     >
-      {showIndicator && (
-        <span className="relative flex size-2 shrink-0 items-center justify-center" aria-hidden="true">
-          {config.hasPing && (
-            <span
-              className={cn(
-                'absolute inline-flex size-full animate-ping rounded-full opacity-75',
-                config.dotClass
-              )}
-            />
-          )}
-          <span className={cn('relative inline-flex size-2 rounded-full', config.dotClass)} />
-        </span>
-      )}
-      <span>{label}</span>
+      <span className="relative flex size-2 shrink-0 items-center justify-center" aria-hidden="true">
+        {config.hasPing && (
+          <span
+            className={cn(
+              'absolute inline-flex size-full animate-ping rounded-full opacity-75',
+              config.dotClass
+            )}
+          />
+        )}
+        <span className={cn('relative inline-flex size-2 rounded-full', config.dotClass)} />
+      </span>
+      <span>{config.label}</span>
     </div>
   );
 }

@@ -3,6 +3,8 @@
 import React from 'react';
 import { useStaffRealtime } from '@/hooks/useStaffRealtime';
 import { useStaffStore } from '@/store/useStaffStore';
+import { StaffHeader } from '@/components/staff/StaffHeader';
+import { StatusBadge } from '@/components/staff/StatusBadge';
 import {
   Card,
   CardHeader,
@@ -10,23 +12,18 @@ import {
   CardDescription,
   CardContent,
 } from '@/components/ui/card';
-import { Badge, PatientStatusBadge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
-  Wifi,
-  WifiOff,
-  Activity,
   User,
   Phone,
   ShieldAlert,
   Clock,
   CheckCircle2,
-  RotateCcw,
   Layers,
   Sparkles,
 } from 'lucide-react';
 import { getPatientFullName } from '@/lib/schemas';
-import type { PatientPresenceStatus, RealtimeConnectionStatus } from '@/lib/realtime';
+import type { PatientPresenceStatus } from '@/lib/realtime';
 
 const STEP_LABELS: Record<number, string> = {
   1: '1. Personal Details',
@@ -38,13 +35,6 @@ const STEP_DESCRIPTIONS: Record<number, string> = {
   1: 'Personal details section',
   2: 'Contact information section',
   3: 'Emergency contact & review',
-};
-
-const PATIENT_STATUS_LABELS: Record<PatientPresenceStatus, string> = {
-  typing: 'Actively filling in',
-  idle: 'Inactive',
-  submitted: 'Submitted',
-  offline: 'Offline',
 };
 
 const PATIENT_STATUS_DESCRIPTIONS: Record<PatientPresenceStatus, string> = {
@@ -81,120 +71,19 @@ export default function StaffPage() {
   const lastFieldChangedAt = useStaffStore((state) => state.lastFieldChangedAt);
   const currentStep = useStaffStore((state) => state.currentStep);
   const patientStatus = useStaffStore((state) => state.patientStatus);
-  const connectionStatus = useStaffStore((state) => state.connectionStatus);
   const isSubmitted = useStaffStore((state) => state.isSubmitted);
   const submittedAt = useStaffStore((state) => state.submittedAt);
-  const resetStaffState = useStaffStore((state) => state.resetStaffState);
 
   const personal = patientData?.personal;
   const contact = patientData?.contact;
   const emergency = patientData?.emergency;
   const fullName = getPatientFullName(personal);
 
-  const renderConnectionBadge = (status: RealtimeConnectionStatus) => {
-    switch (status) {
-      case 'CONNECTED':
-        return (
-          <Badge
-            variant="outline"
-            className="border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 gap-1.5 font-medium"
-          >
-            <Wifi className="size-3.5" />
-            <span>Connected (Supabase)</span>
-          </Badge>
-        );
-      case 'FALLBACK_LOCAL':
-        return (
-          <Badge
-            variant="outline"
-            className="border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400 gap-1.5 font-medium"
-          >
-            <Activity className="size-3.5" />
-            <span>Local Fallback (BroadcastChannel)</span>
-          </Badge>
-        );
-      case 'CONNECTING':
-        return (
-          <Badge
-            variant="outline"
-            className="border-sky-500/30 bg-sky-500/10 text-sky-600 dark:text-sky-400 gap-1.5 font-medium animate-pulse"
-          >
-            <Activity className="size-3.5" />
-            <span>Connecting...</span>
-          </Badge>
-        );
-      case 'DISCONNECTED':
-      default:
-        return (
-          <Badge
-            variant="outline"
-            className="border-zinc-500/30 bg-zinc-500/10 text-zinc-600 dark:text-zinc-400 gap-1.5 font-medium"
-          >
-            <WifiOff className="size-3.5" />
-            <span>Disconnected</span>
-          </Badge>
-        );
-    }
-  };
-
-  const renderPresenceBadge = (status: PatientPresenceStatus) => {
-    if (status === 'offline') {
-      return (
-        <Badge
-          variant="outline"
-          className="border-zinc-300 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 gap-1.5"
-        >
-          <span className="size-2 rounded-full bg-zinc-400" />
-          <span>Offline</span>
-        </Badge>
-      );
-    }
-    return (
-      <PatientStatusBadge
-        status={status}
-        labels={{
-          typing: 'Actively filling in',
-          idle: 'Inactive',
-          submitted: 'Submitted',
-        }}
-      />
-    );
-  };
-
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
       <div className="mx-auto max-w-6xl space-y-6">
         {/* Top Header & Status Bar */}
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b pb-5">
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold tracking-tight">
-                Staff Monitoring Dashboard
-              </h1>
-              <Badge variant="secondary" className="text-xs">
-                Real-Time
-              </Badge>
-            </div>
-            <p className="text-sm text-muted-foreground mt-1">
-              Live patient intake monitoring and presence synchronization
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            {renderConnectionBadge(connectionStatus)}
-            {renderPresenceBadge(patientStatus)}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={resetStaffState}
-              className="gap-1.5 text-xs text-muted-foreground hover:text-foreground"
-              title="Reset intake monitor state"
-            >
-              <RotateCcw className="size-3.5" />
-              Reset State
-            </Button>
-          </div>
-        </header>
+        <StaffHeader />
 
         {/* Submission Confirmation Banner */}
         {isSubmitted && (
@@ -260,10 +149,10 @@ export default function StaffPage() {
               <Clock className="size-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-lg font-bold">
-                {PATIENT_STATUS_LABELS[patientStatus] || patientStatus}
+              <div className="pt-0.5">
+                <StatusBadge status={patientStatus} />
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs text-muted-foreground mt-2">
                 {PATIENT_STATUS_DESCRIPTIONS[patientStatus] || ''}
               </p>
             </CardContent>

@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { getPatientFullName, type PatientFormData } from "@/lib/schemas";
+import { type TranslationDictionary, type Language } from "@/lib/i18n/translations";
 
 export interface SubmissionSuccessDialogProps {
   open: boolean;
@@ -20,6 +21,8 @@ export interface SubmissionSuccessDialogProps {
   referenceId?: string;
   submittedAt?: string;
   onResetAndNew: () => void;
+  lang?: Language;
+  t: TranslationDictionary;
 }
 
 export function SubmissionSuccessDialog({
@@ -29,6 +32,8 @@ export function SubmissionSuccessDialog({
   referenceId,
   submittedAt,
   onResetAndNew,
+  lang = "th",
+  t,
 }: SubmissionSuccessDialogProps) {
   if (!data) return null;
 
@@ -37,14 +42,14 @@ export function SubmissionSuccessDialog({
   const formattedDate = React.useMemo(() => {
     try {
       const dateObj = submittedAt ? new Date(submittedAt) : new Date();
-      return new Intl.DateTimeFormat("th-TH", {
+      return new Intl.DateTimeFormat(lang === "th" ? "th-TH" : "en-US", {
         dateStyle: "medium",
         timeStyle: "medium",
       }).format(dateObj);
     } catch {
       return new Date().toLocaleString();
     }
-  }, [submittedAt]);
+  }, [submittedAt, lang]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -59,14 +64,11 @@ export function SubmissionSuccessDialog({
           </div>
 
           <DialogTitle className="text-xl sm:text-2xl font-bold tracking-tight text-foreground font-sans">
-            Registration Submitted!
+            {t.success.title}
           </DialogTitle>
-          <p className="text-sm font-semibold text-success">
-            ส่งข้อมูลลงทะเบียนผู้ป่วยเรียบร้อยแล้ว
-          </p>
 
           <DialogDescription className="text-xs sm:text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed">
-            ข้อมูลของผู้ป่วยได้รับการส่งตรงไปยังระบบหน้าจอเจ้าหน้าที่ (Staff Monitoring) แบบ Real-time เรียบร้อยแล้ว
+            {t.success.subtitle}
           </DialogDescription>
         </DialogHeader>
 
@@ -74,7 +76,7 @@ export function SubmissionSuccessDialog({
         <div className="w-full my-3 rounded-xl bg-muted/60 border border-border/80 p-4 space-y-3 text-left text-sm overflow-hidden">
           <div className="flex items-center justify-between border-b border-border/50 pb-2.5 gap-2">
             <span className="text-xs sm:text-sm text-muted-foreground font-medium shrink-0">
-              Reference No. / เลขอ้างอิง:
+              {t.success.refId}:
             </span>
             <span className="font-mono font-bold text-xs sm:text-sm text-primary truncate text-right">
               {referenceId || "AGN-PENDING"}
@@ -83,7 +85,7 @@ export function SubmissionSuccessDialog({
 
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs sm:text-sm text-muted-foreground font-medium shrink-0">
-              Patient Name / ชื่อผู้ป่วย:
+              {t.personal.fullName}:
             </span>
             <span className="font-semibold text-foreground text-sm sm:text-base truncate text-right">
               {patientFullName}
@@ -92,7 +94,7 @@ export function SubmissionSuccessDialog({
 
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs sm:text-sm text-muted-foreground font-medium shrink-0">
-              Contact / เบอร์ติดต่อ:
+              {t.contact.phoneNumber}:
             </span>
             <span className="font-mono text-xs sm:text-sm font-medium text-foreground text-right">
               {data.contact.phoneNumber}
@@ -101,7 +103,7 @@ export function SubmissionSuccessDialog({
 
           <div className="flex items-center justify-between border-t border-border/50 pt-2.5 text-xs sm:text-sm gap-2">
             <span className="text-muted-foreground font-medium shrink-0">
-              Submitted At / เวลาที่ส่ง:
+              {t.success.submittedAt}:
             </span>
             <span className="text-muted-foreground tabular-nums text-right">
               {formattedDate}
@@ -117,7 +119,7 @@ export function SubmissionSuccessDialog({
             className="w-full h-auto min-h-[44px] py-2.5 px-4 text-sm sm:text-base font-semibold touch-target shadow-sm cursor-pointer whitespace-normal text-center bg-primary text-primary-foreground hover:bg-primary/90"
           >
             <RefreshCw className="size-4 mr-2 shrink-0" aria-hidden="true" />
-            <span>Register Another Patient (ลงทะเบียนเพิ่ม)</span>
+            <span>{t.success.registerNext}</span>
           </Button>
 
           <Button
@@ -126,7 +128,7 @@ export function SubmissionSuccessDialog({
             onClick={() => onOpenChange(false)}
             className="w-full min-h-[44px] h-11 text-sm sm:text-base font-medium touch-target cursor-pointer hover:bg-muted"
           >
-            <span>Close / ปิดหน้าต่าง</span>
+            <span>{t.common.close}</span>
           </Button>
         </DialogFooter>
       </DialogContent>

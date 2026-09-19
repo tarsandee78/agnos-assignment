@@ -1,11 +1,42 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+@variant dark (&:where(.dark, .dark *));
+
 @layer utilities {
   /* Accessible Touch Targets (WCAG 2.5.5 / 2.5.8: Min 44x44px for healthcare inputs & controls) */
   .touch-target {
     min-height: 44px;
     min-width: 44px;
+  }
+
+  /* Active Card Wave Glow Animation (Agnos Blue) */
+  @keyframes blue-wave-glow {
+    0%, 100% {
+      box-shadow: 0 0 0 1px oklch(0.48 0.20 260.5 / 0.4), 0 0 16px -2px oklch(0.48 0.20 260.5 / 0.25);
+      border-color: oklch(0.48 0.20 260.5 / 0.7);
+    }
+    50% {
+      box-shadow: 0 0 0 2.5px oklch(0.48 0.20 260.5 / 0.75), 0 0 28px 3px oklch(0.48 0.20 260.5 / 0.45);
+      border-color: oklch(0.48 0.20 260.5 / 0.95);
+    }
+  }
+
+  .animate-blue-wave {
+    animation: blue-wave-glow 2.5s ease-in-out infinite;
+  }
+
+  /* Completed Card Green Glow */
+  .card-green-glow {
+    box-shadow: 0 0 0 1.5px oklch(0.52 0.17 145 / 0.5), 0 0 18px 2px oklch(0.52 0.17 145 / 0.25);
+    border-color: oklch(0.52 0.17 145 / 0.8) !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-blue-wave {
+      animation: none;
+      box-shadow: 0 0 0 2px oklch(0.48 0.20 260.5 / 0.5);
+    }
   }
 }
 

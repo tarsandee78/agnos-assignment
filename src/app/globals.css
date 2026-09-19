@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+@variant dark (&:where(.dark, .dark *));
+
 @layer utilities {
   /* Accessible Touch Targets (WCAG 2.5.5 / 2.5.8: Min 44x44px for healthcare inputs & controls) */
   .touch-target {

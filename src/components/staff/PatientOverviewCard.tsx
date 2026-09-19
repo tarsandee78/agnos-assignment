@@ -71,7 +71,7 @@ function getCompleteness(
       label: isOptional
         ? t.staff.cards.provided(filledCount, totalRequired)
         : t.staff.cards.complete(filledCount, totalRequired),
-      badgeClass: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
+      badgeClass: 'border-emerald-600/30 bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-200 dark:border-emerald-500/40 font-semibold',
       icon: CheckCircle2,
     };
   }
@@ -79,7 +79,7 @@ function getCompleteness(
   if (filledCount > 0) {
     return {
       label: t.staff.cards.inProgress(filledCount, totalRequired),
-      badgeClass: 'border-primary/25 bg-primary/10 text-primary dark:text-primary-foreground',
+      badgeClass: 'border-blue-600/30 bg-blue-50 text-blue-900 dark:bg-blue-950/70 dark:text-blue-200 dark:border-blue-500/40 font-semibold',
       icon: Clock,
     };
   }
@@ -87,14 +87,14 @@ function getCompleteness(
   if (isOptional) {
     return {
       label: t.staff.cards.optional,
-      badgeClass: 'border-border bg-muted/60 text-muted-foreground',
+      badgeClass: 'border-zinc-300 bg-zinc-100 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 font-medium',
       icon: Circle,
     };
   }
 
   return {
     label: t.staff.cards.pending(0, totalRequired),
-    badgeClass: 'border-border bg-muted/60 text-muted-foreground',
+    badgeClass: 'border-zinc-300 bg-zinc-100 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 font-medium',
     icon: Circle,
   };
 }
@@ -112,6 +112,7 @@ interface StepCardHeaderProps {
   isCompleted?: boolean;
   completeness: CompletenessInfo;
   activeBadgeText?: string;
+  completedBadgeText?: string;
 }
 
 function StepCardHeader({
@@ -123,70 +124,69 @@ function StepCardHeader({
   isCompleted = false,
   completeness,
   activeBadgeText = 'Active',
+  completedBadgeText = 'Completed',
 }: StepCardHeaderProps) {
   const CompletenessIcon = completeness.icon;
 
   return (
-    <CardHeader className="border-b border-border/60 p-4 sm:p-5 h-[96px] min-h-[96px] flex flex-col justify-center relative">
-      {/* Row 1: Step Icon + Title (Left) & Top-Rightmost ACTIVE Badge (Right) */}
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2.5 min-w-0 flex-1">
-          <div
-            className={cn(
-              'relative flex size-8 shrink-0 items-center justify-center rounded-lg transition-all',
-              isActive
-                ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/30'
-                : isCompleted
-                ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400'
-                : 'bg-muted text-muted-foreground'
-            )}
-          >
-            {isCompleted ? (
-              <CheckCircle2 className="size-4 stroke-[2.5]" aria-hidden="true" />
-            ) : (
-              <Icon className="size-4" aria-hidden="true" />
-            )}
-          </div>
+    <CardHeader className="border-b border-border/60 p-4 sm:p-5 flex flex-col justify-between min-h-[108px] relative">
+      {/* Tier 1: Top Bar with Completeness (Left) & Top-Rightmost ACTIVE / Completed status (Right) */}
+      <div className="flex items-center justify-between gap-2 w-full">
+        <Badge
+          variant="outline"
+          className={cn(
+            'text-[11px] gap-1.5 py-0.5 px-2.5 font-semibold shrink-0 select-none shadow-2xs',
+            completeness.badgeClass
+          )}
+        >
+          <CompletenessIcon className="size-3 shrink-0" />
+          <span>{completeness.label}</span>
+        </Badge>
 
-          <CardTitle className="text-sm sm:text-base font-bold tracking-tight text-foreground whitespace-nowrap">
-            {stepNumber}. {title}
-          </CardTitle>
+        <div className="flex items-center shrink-0">
+          {isActive ? (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-primary text-primary-foreground shadow-xs uppercase tracking-wider animate-pulse select-none">
+              <span className="size-1.5 rounded-full bg-white animate-ping" />
+              <span>{activeBadgeText}</span>
+            </span>
+          ) : isCompleted ? (
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-200 border border-emerald-500/30 uppercase tracking-wider select-none">
+              <CheckCircle2 className="size-3 stroke-[2.5]" />
+              <span>{completedBadgeText}</span>
+            </span>
+          ) : (
+            <div className="h-5" aria-hidden="true" />
+          )}
         </div>
-
-        {/* Top-rightmost: ACTIVE Badge or Completed Pill */}
-        {isActive ? (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-primary text-primary-foreground shadow-xs uppercase tracking-wider animate-pulse shrink-0 select-none">
-            <span className="size-1.5 rounded-full bg-white animate-ping" />
-            <span>{activeBadgeText}</span>
-          </span>
-        ) : isCompleted ? (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 uppercase tracking-wider shrink-0 select-none">
-            <CheckCircle2 className="size-3 stroke-[2.5]" />
-            <span>{completeness.label}</span>
-          </span>
-        ) : (
-          <div className="h-[20px] w-1 shrink-0" aria-hidden="true" />
-        )}
       </div>
 
-      {/* Row 2: Subtitle description (Left) & Completeness Status Badge (Right) */}
-      <div className="flex items-center justify-between gap-2 mt-1.5 pl-[34px]">
-        <CardDescription className="text-xs text-muted-foreground truncate">
-          {subtitle}
-        </CardDescription>
+      {/* Tier 2: Step Icon + Title + Subtitle Row (Directly below Tier 1) */}
+      <div className="flex items-start gap-2.5 mt-2.5 w-full min-w-0">
+        <div
+          className={cn(
+            'relative flex size-9 shrink-0 items-center justify-center rounded-lg transition-all mt-0.5',
+            isActive
+              ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/30'
+              : isCompleted
+              ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400'
+              : 'bg-muted text-muted-foreground'
+          )}
+        >
+          {isCompleted ? (
+            <CheckCircle2 className="size-4 stroke-[2.5]" aria-hidden="true" />
+          ) : (
+            <Icon className="size-4" aria-hidden="true" />
+          )}
+        </div>
 
-        {!isCompleted && (
-          <Badge
-            variant="outline"
-            className={cn(
-              'text-[11px] gap-1 py-0.5 px-2 font-medium shrink-0 whitespace-nowrap',
-              completeness.badgeClass
-            )}
-          >
-            <CompletenessIcon className="size-3 shrink-0" />
-            <span>{completeness.label}</span>
-          </Badge>
-        )}
+        <div className="flex flex-col min-w-0 flex-1">
+          <CardTitle className="text-sm sm:text-base font-bold tracking-tight text-foreground leading-snug">
+            {stepNumber}. {title}
+          </CardTitle>
+          <CardDescription className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
+            {subtitle}
+          </CardDescription>
+        </div>
       </div>
     </CardHeader>
   );
@@ -235,7 +235,7 @@ export function PersonalDetailsCard({
     ? t.personal.religionOptions.None
     : null;
 
-  const isCompleted = currentStep > 1 || filledCount === 6;
+  const isCompleted = filledCount === 6;
 
   return (
     <Card className={getStepCardClass(isActive, isCompleted, className)}>
@@ -248,6 +248,7 @@ export function PersonalDetailsCard({
         isCompleted={isCompleted}
         completeness={completeness}
         activeBadgeText={t.common.active}
+        completedBadgeText={t.common.completed}
       />
 
       <CardContent className="space-y-3 pt-4 flex-1">
@@ -356,7 +357,7 @@ export function ContactDetailsCard({
     : undefined;
   const emailHref = contact?.email ? `mailto:${contact.email}` : undefined;
 
-  const isCompleted = currentStep > 2 || filledCount === 3;
+  const isCompleted = filledCount === 3;
 
   return (
     <Card className={getStepCardClass(isActive, isCompleted, className)}>
@@ -369,6 +370,7 @@ export function ContactDetailsCard({
         isCompleted={isCompleted}
         completeness={completeness}
         activeBadgeText={t.common.active}
+        completedBadgeText={t.common.completed}
       />
 
       <CardContent className="space-y-3 pt-4 flex-1">
@@ -426,7 +428,7 @@ export function EmergencyContactCard({
     emergency?.contactPhone,
   ];
   const filledCount = optionalValues.filter((v) => v && v.trim().length > 0).length;
-  const isCompleted = filledCount === 3 || filledCount > 0;
+  const isCompleted = filledCount === 3;
   const completeness = getCompleteness(filledCount, 3, t, true);
 
   const formattedEmergencyPhone = emergency?.contactPhone
@@ -447,6 +449,7 @@ export function EmergencyContactCard({
         isCompleted={isCompleted}
         completeness={completeness}
         activeBadgeText={t.common.active}
+        completedBadgeText={t.common.completed}
       />
 
       <CardContent className="space-y-3 pt-4 flex-1">

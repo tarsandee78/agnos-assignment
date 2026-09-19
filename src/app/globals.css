@@ -32,6 +32,8 @@
     --success-foreground: oklch(0.99 0 0);
     --warning: oklch(0.68 0.16 75);
     --warning-foreground: oklch(0.18 0.03 75);
+    --inactive: oklch(0.85 0.015 250);
+    --inactive-foreground: oklch(0.38 0.03 260);
     --info: oklch(0.48 0.20 260.5);
     --info-foreground: oklch(0.99 0 0);
     --border: oklch(0.89 0.01 250);
@@ -61,6 +63,8 @@
     --success-foreground: oklch(0.10 0.03 145);
     --warning: oklch(0.75 0.16 75);
     --warning-foreground: oklch(0.14 0.03 75);
+    --inactive: oklch(0.32 0.02 260);
+    --inactive-foreground: oklch(0.78 0.015 260);
     --info: oklch(0.65 0.18 255);
     --info-foreground: oklch(0.10 0.02 260);
     --border: oklch(0.30 0.015 260);
@@ -70,6 +74,8 @@
 }
 
 @theme inline {
+  --font-sans: var(--font-sans), var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -90,6 +96,8 @@
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
+  --color-inactive: var(--inactive);
+  --color-inactive-foreground: var(--inactive-foreground);
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
   --color-border: var(--border);

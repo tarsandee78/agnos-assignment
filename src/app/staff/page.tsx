@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useStaffRealtime } from '@/hooks/useStaffRealtime';
+import { useStaffStore } from '@/store/useStaffStore';
 import {
   Card,
   CardHeader,
@@ -25,33 +26,73 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { getPatientFullName } from '@/lib/schemas';
+import type { PatientPresenceStatus, RealtimeConnectionStatus } from '@/lib/realtime';
 
-const STEP_LABELS = {
+const STEP_LABELS: Record<number, string> = {
   1: '1. Personal Details',
   2: '2. Contact Information',
   3: '3. Emergency & Review',
-} as const;
+};
+
+const STEP_DESCRIPTIONS: Record<number, string> = {
+  1: 'Personal details section',
+  2: 'Contact information section',
+  3: 'Emergency contact & review',
+};
+
+const PATIENT_STATUS_LABELS: Record<PatientPresenceStatus, string> = {
+  typing: 'Actively filling in',
+  idle: 'Inactive',
+  submitted: 'Submitted',
+  offline: 'Offline',
+};
+
+const PATIENT_STATUS_DESCRIPTIONS: Record<PatientPresenceStatus, string> = {
+  typing: 'Receiving real-time typing events',
+  idle: 'Inactivity detected (> 5s)',
+  submitted: 'Intake form complete',
+  offline: 'No active patient detected',
+};
+
+interface FieldItemProps {
+  label: string;
+  value?: string | null;
+  mono?: boolean;
+}
+
+function FieldItem({ label, value, mono = false }: FieldItemProps) {
+  return (
+    <div>
+      <span className="text-xs text-muted-foreground block">{label}</span>
+      <span className={mono ? 'font-medium font-mono' : 'font-medium'}>
+        {value?.trim() ? value : <span className="text-muted-foreground italic">—</span>}
+      </span>
+    </div>
+  );
+}
 
 export default function StaffPage() {
-  const {
-    patientData,
-    lastFieldChanged,
-    lastFieldChangedAt,
-    currentStep,
-    patientStatus,
-    connectionStatus,
-    isSubmitted,
-    submittedAt,
-    resetStaffState,
-  } = useStaffRealtime();
+  // Subscribe to real-time events via custom hook
+  useStaffRealtime();
+
+  // Read state directly from store
+  const patientData = useStaffStore((state) => state.patientData);
+  const lastFieldChanged = useStaffStore((state) => state.lastFieldChanged);
+  const lastFieldChangedAt = useStaffStore((state) => state.lastFieldChangedAt);
+  const currentStep = useStaffStore((state) => state.currentStep);
+  const patientStatus = useStaffStore((state) => state.patientStatus);
+  const connectionStatus = useStaffStore((state) => state.connectionStatus);
+  const isSubmitted = useStaffStore((state) => state.isSubmitted);
+  const submittedAt = useStaffStore((state) => state.submittedAt);
+  const resetStaffState = useStaffStore((state) => state.resetStaffState);
 
   const personal = patientData?.personal;
   const contact = patientData?.contact;
   const emergency = patientData?.emergency;
   const fullName = getPatientFullName(personal);
 
-  const getConnectionBadge = () => {
-    switch (connectionStatus) {
+  const renderConnectionBadge = (status: RealtimeConnectionStatus) => {
+    switch (status) {
       case 'CONNECTED':
         return (
           <Badge
@@ -96,24 +137,24 @@ export default function StaffPage() {
     }
   };
 
-  const getPresenceBadge = () => {
-    if (patientStatus === 'offline') {
+  const renderPresenceBadge = (status: PatientPresenceStatus) => {
+    if (status === 'offline') {
       return (
         <Badge
           variant="outline"
           className="border-zinc-300 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 gap-1.5"
         >
           <span className="size-2 rounded-full bg-zinc-400" />
-          <span>Patient Offline</span>
+          <span>Offline</span>
         </Badge>
       );
     }
     return (
       <PatientStatusBadge
-        status={patientStatus}
+        status={status}
         labels={{
           typing: 'Actively filling in',
-          idle: 'Inactive (idle)',
+          idle: 'Inactive',
           submitted: 'Submitted',
         }}
       />
@@ -140,8 +181,8 @@ export default function StaffPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            {getConnectionBadge()}
-            {getPresenceBadge()}
+            {renderConnectionBadge(connectionStatus)}
+            {renderPresenceBadge(patientStatus)}
             <Button
               variant="outline"
               size="sm"
@@ -187,11 +228,7 @@ export default function StaffPage() {
                 {STEP_LABELS[currentStep] || `Step ${currentStep}`}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                {currentStep === 1
-                  ? 'Personal details section'
-                  : currentStep === 2
-                  ? 'Contact information section'
-                  : 'Emergency contact & review'}
+                {STEP_DESCRIPTIONS[currentStep] || ''}
               </p>
             </CardContent>
           </Card>
@@ -223,21 +260,11 @@ export default function StaffPage() {
               <Clock className="size-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-lg font-bold capitalize">
-                {patientStatus === 'typing'
-                  ? 'Actively filling in'
-                  : patientStatus === 'idle'
-                  ? 'Inactive (idle)'
-                  : patientStatus}
+              <div className="text-lg font-bold">
+                {PATIENT_STATUS_LABELS[patientStatus] || patientStatus}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                {patientStatus === 'typing'
-                  ? 'Receiving real-time typing events'
-                  : patientStatus === 'idle'
-                  ? 'Inactivity detected (> 5s)'
-                  : patientStatus === 'submitted'
-                  ? 'Intake form complete'
-                  : 'No active patient detected'}
+                {PATIENT_STATUS_DESCRIPTIONS[patientStatus] || ''}
               </p>
             </CardContent>
           </Card>
@@ -255,53 +282,20 @@ export default function StaffPage() {
               <CardDescription>Name, birth date, and identity</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
-              <div>
-                <span className="text-xs text-muted-foreground block">Full Name</span>
-                <span className="font-medium">
-                  {fullName || <span className="text-muted-foreground italic">Not provided</span>}
-                </span>
+              <FieldItem label="Full Name" value={fullName} />
+              <div className="grid grid-cols-2 gap-2">
+                <FieldItem label="Date of Birth" value={personal?.dateOfBirth} />
+                <FieldItem
+                  label="Gender"
+                  value={personal?.gender ? personal.gender.toUpperCase() : null}
+                />
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <span className="text-xs text-muted-foreground block">Date of Birth</span>
-                  <span className="font-medium">
-                    {personal?.dateOfBirth || (
-                      <span className="text-muted-foreground italic">—</span>
-                    )}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-xs text-muted-foreground block">Gender</span>
-                  <span className="font-medium capitalize">
-                    {personal?.gender || (
-                      <span className="text-muted-foreground italic">—</span>
-                    )}
-                  </span>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <span className="text-xs text-muted-foreground block">Preferred Language</span>
-                  <span className="font-medium">
-                    {personal?.preferredLanguage || (
-                      <span className="text-muted-foreground italic">—</span>
-                    )}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-xs text-muted-foreground block">Nationality</span>
-                  <span className="font-medium">
-                    {personal?.nationality || (
-                      <span className="text-muted-foreground italic">—</span>
-                    )}
-                  </span>
-                </div>
+                <FieldItem label="Preferred Language" value={personal?.preferredLanguage} />
+                <FieldItem label="Nationality" value={personal?.nationality} />
               </div>
               {personal?.religion && (
-                <div>
-                  <span className="text-xs text-muted-foreground block">Religion</span>
-                  <span className="font-medium">{personal.religion}</span>
-                </div>
+                <FieldItem label="Religion" value={personal.religion} />
               )}
             </CardContent>
           </Card>
@@ -316,30 +310,9 @@ export default function StaffPage() {
               <CardDescription>Phone, email, and residential address</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
-              <div>
-                <span className="text-xs text-muted-foreground block">Phone Number</span>
-                <span className="font-medium font-mono">
-                  {contact?.phoneNumber || (
-                    <span className="text-muted-foreground italic">Not provided</span>
-                  )}
-                </span>
-              </div>
-              <div>
-                <span className="text-xs text-muted-foreground block">Email Address</span>
-                <span className="font-medium">
-                  {contact?.email || (
-                    <span className="text-muted-foreground italic">Not provided</span>
-                  )}
-                </span>
-              </div>
-              <div>
-                <span className="text-xs text-muted-foreground block">Residential Address</span>
-                <p className="font-medium whitespace-pre-wrap">
-                  {contact?.address || (
-                    <span className="text-muted-foreground italic">Not provided</span>
-                  )}
-                </p>
-              </div>
+              <FieldItem label="Phone Number" value={contact?.phoneNumber} mono />
+              <FieldItem label="Email Address" value={contact?.email} />
+              <FieldItem label="Residential Address" value={contact?.address} />
             </CardContent>
           </Card>
 
@@ -353,30 +326,9 @@ export default function StaffPage() {
               <CardDescription>Primary emergency representative</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
-              <div>
-                <span className="text-xs text-muted-foreground block">Contact Name</span>
-                <span className="font-medium">
-                  {emergency?.contactName || (
-                    <span className="text-muted-foreground italic">Not provided</span>
-                  )}
-                </span>
-              </div>
-              <div>
-                <span className="text-xs text-muted-foreground block">Relationship</span>
-                <span className="font-medium">
-                  {emergency?.relationship || (
-                    <span className="text-muted-foreground italic">Not provided</span>
-                  )}
-                </span>
-              </div>
-              <div>
-                <span className="text-xs text-muted-foreground block">Contact Phone</span>
-                <span className="font-medium font-mono">
-                  {emergency?.contactPhone || (
-                    <span className="text-muted-foreground italic">Not provided</span>
-                  )}
-                </span>
-              </div>
+              <FieldItem label="Contact Name" value={emergency?.contactName} />
+              <FieldItem label="Relationship" value={emergency?.relationship} />
+              <FieldItem label="Contact Phone" value={emergency?.contactPhone} mono />
             </CardContent>
           </Card>
         </div>

@@ -96,7 +96,7 @@ export function FieldDisplay<
       setIsGlowing(true);
       const timer = setTimeout(() => {
         setIsGlowing(false);
-      }, 2500);
+      }, 1200);
       return () => clearTimeout(timer);
     } else {
       setIsGlowing(false);
@@ -115,7 +115,7 @@ export function FieldDisplay<
       String(displayValue)
     )
   ) : (
-    <span className="text-muted-foreground/60 italic font-normal">—</span>
+    <span className="text-muted-foreground/50 font-normal select-none">—</span>
   );
 
   return (
@@ -123,16 +123,16 @@ export function FieldDisplay<
       data-field-name={targetField}
       className={cn(
         // Zero-CLS layout: constant padding and border dimensions
-        'relative rounded-lg border px-3 py-2.5 transition-colors duration-300 ease-out',
+        'relative rounded-lg border px-3 py-2.5 transition-colors duration-200 ease-out font-sans',
         isGlowing
-          ? 'border-emerald-500/40 bg-emerald-500/8 text-foreground'
+          ? 'border-emerald-500/50 bg-emerald-500/10 text-foreground'
           : 'border-border/60 bg-muted/20 text-foreground hover:bg-muted/30',
         className
       )}
     >
       {/* Top row: Label, Icon, and Live Typing Indicator */}
       <div className="flex items-center justify-between gap-1.5 mb-1">
-        <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+        <span className="flex items-center gap-1.5 text-xs sm:text-sm font-medium text-muted-foreground">
           {Icon && <Icon className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />}
           <span>{label}</span>
         </span>
@@ -141,7 +141,7 @@ export function FieldDisplay<
           <span
             role="status"
             aria-live="polite"
-            className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 dark:text-emerald-300 shrink-0 transition-opacity duration-200"
+            className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300 shrink-0 transition-opacity duration-150"
           >
             <span className="size-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400" aria-hidden="true" />
             <span>Updated</span>
@@ -153,7 +153,7 @@ export function FieldDisplay<
       <div className="flex flex-wrap items-baseline gap-2">
         <div
           className={cn(
-            'text-sm font-semibold text-foreground break-words min-w-0 flex-1',
+            'text-sm sm:text-base font-semibold text-foreground break-words min-w-0 flex-1',
             mono && 'font-mono tracking-tight'
           )}
         >

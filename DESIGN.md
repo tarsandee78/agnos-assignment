@@ -61,9 +61,9 @@ The system provides a clinical dark mode preserving high contrast without harsh 
 ## 3. Typography Hierarchy
 
 ### 3.1 Typefaces & CSS Mapping
-- **Primary Latin Font:** `var(--font-sans)`, `var(--font-geist-sans)`, `Inter`, ui-sans-serif, system-ui, sans-serif.
-- **Thai System Fallback:** `Sarabun`, `Noto Sans Thai`, sans-serif.
-- **Monospace Font:** `var(--font-geist-mono)`, ui-monospace, monospace.
+- **Primary Latin Font:** `Plus Jakarta Sans` (`var(--font-plus-jakarta)`), contemporary high x-height neo-grotesque sans.
+- **Primary Thai Font:** `Noto Sans Thai` (`var(--font-noto-thai)`), Google's premier screen-reading typeface for Thai healthcare legibility across all age groups.
+- **Monospace Font:** `Geist Mono` (`var(--font-geist-mono)`), ui-monospace, monospace.
 
 ### 3.2 Type Scale
 | Level | Font Size | Line Height | Weight | Application |

@@ -37,14 +37,6 @@ export interface StepContactInfoProps {
   t?: TranslationDictionary;
 }
 
-function RequiredIndicator() {
-  return (
-    <span className="text-destructive font-semibold ml-0.5" aria-hidden="true">
-      *
-    </span>
-  );
-}
-
 interface FieldErrorProps {
   error?: string;
   id?: string;
@@ -109,16 +101,19 @@ export function StepContactInfo({
   return (
     <div className={cn("w-full bg-card rounded-2xl border border-border/80 p-6 sm:p-8 shadow-xs", className)}>
       {/* Header */}
-      <div className="flex items-center gap-3 border-b border-border/60 pb-5 mb-6">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+      <div className="flex items-start sm:items-center gap-3 border-b border-border/60 pb-5 mb-6">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary mt-0.5 sm:mt-0">
           <Phone className="size-5" aria-hidden="true" />
         </div>
-        <div>
+        <div className="flex-1 min-w-0">
           <h2 className="text-lg sm:text-xl font-bold text-foreground tracking-tight">
             {t.steps.step2Title}
           </h2>
           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
             {t.steps.step2Desc}
+          </p>
+          <p className="text-xs text-muted-foreground/90 mt-1">
+            {t.common.fillRequiredHint}
           </p>
         </div>
       </div>
@@ -133,7 +128,6 @@ export function StepContactInfo({
               <Label htmlFor="phoneNumber" className="text-sm font-medium flex items-center gap-1.5">
                 <Phone className="size-3.5 text-muted-foreground" aria-hidden="true" />
                 <span>{t.contact.phoneNumber}</span>
-                <RequiredIndicator />
               </Label>
             </div>
             <Controller
@@ -154,6 +148,7 @@ export function StepContactInfo({
                     }}
                     onBlur={field.onBlur}
                     onKeyDown={(e) => handlePhoneBackspaceKeyDown(e, field.onChange)}
+                    aria-required="true"
                     aria-invalid={Boolean(contactErrors?.phoneNumber)}
                     aria-describedby={
                       contactErrors?.phoneNumber
@@ -180,7 +175,6 @@ export function StepContactInfo({
               <Label htmlFor="email" className="text-sm font-medium flex items-center gap-1.5">
                 <Mail className="size-3.5 text-muted-foreground" aria-hidden="true" />
                 <span>{t.contact.email}</span>
-                <RequiredIndicator />
               </Label>
             </div>
             <Input
@@ -189,6 +183,7 @@ export function StepContactInfo({
               inputMode="email"
               placeholder={t.contact.emailPlaceholder}
               autoComplete="email"
+              aria-required="true"
               aria-invalid={Boolean(contactErrors?.email)}
               aria-describedby={
                 contactErrors?.email ? "email-error" : "email-hint"
@@ -212,7 +207,6 @@ export function StepContactInfo({
             <Label htmlFor="address" className="text-sm font-medium flex items-center gap-1.5">
               <MapPin className="size-3.5 text-muted-foreground" aria-hidden="true" />
               <span>{t.contact.address}</span>
-              <RequiredIndicator />
             </Label>
             <span
               className={cn(
@@ -233,6 +227,7 @@ export function StepContactInfo({
             maxLength={300}
             placeholder={t.contact.addressPlaceholder}
             autoComplete="street-address"
+            aria-required="true"
             aria-invalid={Boolean(contactErrors?.address)}
             aria-describedby={
               contactErrors?.address ? "address-error" : "address-hint"
@@ -256,7 +251,7 @@ export function StepContactInfo({
           type="button"
           variant="outline"
           onClick={onBack}
-          className="w-full sm:w-auto min-h-[44px] h-11 px-5 font-medium text-base touch-target cursor-pointer hover:bg-muted"
+          className="w-full sm:w-auto min-h-[44px] h-11 px-5 font-medium text-base touch-target cursor-pointer hover:bg-muted active:scale-[0.98] transition-all"
         >
           <ArrowLeft className="size-4 mr-2" aria-hidden="true" />
           <span>{t.common.back}: {t.steps.step1Title}</span>
@@ -265,7 +260,7 @@ export function StepContactInfo({
         <Button
           type="button"
           onClick={handleNext}
-          className="w-full sm:w-auto min-h-[44px] h-11 px-6 font-semibold text-base touch-target group shadow-xs cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90"
+          className="w-full sm:w-auto min-h-[44px] h-11 px-6 font-semibold text-base touch-target group shadow-xs cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.98] transition-all"
         >
           <span>{t.common.next}: {t.steps.step3Title}</span>
           <ArrowRight className="size-4 ml-1.5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />

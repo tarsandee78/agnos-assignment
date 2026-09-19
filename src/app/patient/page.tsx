@@ -22,10 +22,12 @@ import { StepContactInfo } from "@/components/patient/StepContactInfo";
 import { StepEmergencyReview } from "@/components/patient/StepEmergencyReview";
 import { SubmissionSuccessDialog } from "@/components/patient/SubmissionSuccessDialog";
 import { CheckCircle2, Cloud, HeartPulse } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function PatientPage() {
   const { lang, setLang, t } = useLanguage("agnos_lang_patient", "th");
   const [currentStep, setCurrentStep] = React.useState<PatientFormStep>(1);
+  const [stepDirection, setStepDirection] = React.useState<"forward" | "backward">("forward");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [submissionErrorKey, setSubmissionErrorKey] = React.useState<keyof typeof t.errors | null>(null);
   const submissionErrorMessage = submissionErrorKey ? t.errors[submissionErrorKey] : null;
@@ -65,12 +67,17 @@ export default function PatientPage() {
     }
   }, [isLoaded, reset]);
 
+  const handleGoToStep = (targetStep: PatientFormStep) => {
+    setStepDirection(targetStep > currentStep ? "forward" : "backward");
+    setCurrentStep(targetStep);
+  };
+
   // Stepper navigation with validation guard
   const handleStepClick = async (targetStep: PatientFormStep) => {
     if (targetStep === currentStep) return;
     // Allow stepping back to previous completed steps freely
     if (targetStep < currentStep) {
-      setCurrentStep(targetStep);
+      handleGoToStep(targetStep);
       return;
     }
     // Advancing forward requires validation of previous steps
@@ -78,18 +85,18 @@ export default function PatientPage() {
       const isPersonalValid = await trigger("personal");
       if (!isPersonalValid) return;
       if (targetStep === 2) {
-        setCurrentStep(2);
+        handleGoToStep(2);
       } else if (targetStep === 3) {
         const isContactValid = await trigger("contact");
         if (isContactValid) {
-          setCurrentStep(3);
+          handleGoToStep(3);
         }
       }
     } else if (currentStep === 2) {
       if (targetStep === 3) {
         const isContactValid = await trigger("contact");
         if (isContactValid) {
-          setCurrentStep(3);
+          handleGoToStep(3);
         }
       }
     }
@@ -149,6 +156,7 @@ export default function PatientPage() {
     clearDraft();
     resetRealtimeState();
     reset(defaultPatientFormData);
+    setStepDirection("backward");
     setCurrentStep(1);
     setSubmittedData(null);
     setSubmittedAt(null);
@@ -213,38 +221,48 @@ export default function PatientPage() {
       </div>
 
       {/* Main Form Content Area */}
-      <main className="flex-1 max-w-4xl w-full mx-auto px-3 sm:px-4 py-6">
-        {currentStep === 1 && (
-          <StepPersonalInfo
-            form={form}
-            onNext={() => setCurrentStep(2)}
-            lang={lang}
-            t={t}
-          />
-        )}
+      <main className="flex-1 max-w-4xl w-full mx-auto px-3 sm:px-4 py-6 overflow-hidden">
+        <div
+          key={currentStep}
+          className={cn(
+            "w-full motion-reduce:animate-none motion-reduce:transform-none",
+            stepDirection === "forward"
+              ? "animate-in fade-in-40 slide-in-from-right-4 duration-300 ease-out"
+              : "animate-in fade-in-40 slide-in-from-left-4 duration-300 ease-out"
+          )}
+        >
+          {currentStep === 1 && (
+            <StepPersonalInfo
+              form={form}
+              onNext={() => handleGoToStep(2)}
+              lang={lang}
+              t={t}
+            />
+          )}
 
-        {currentStep === 2 && (
-          <StepContactInfo
-            form={form}
-            onNext={() => setCurrentStep(3)}
-            onBack={() => setCurrentStep(1)}
-            lang={lang}
-            t={t}
-          />
-        )}
+          {currentStep === 2 && (
+            <StepContactInfo
+              form={form}
+              onNext={() => handleGoToStep(3)}
+              onBack={() => handleGoToStep(1)}
+              lang={lang}
+              t={t}
+            />
+          )}
 
-        {currentStep === 3 && (
-          <StepEmergencyReview
-            form={form}
-            onSubmit={handleSubmit}
-            onBack={() => setCurrentStep(2)}
-            onEditStep={(step) => setCurrentStep(step)}
-            isSubmitting={isSubmitting}
-            submissionError={submissionErrorMessage}
-            lang={lang}
-            t={t}
-          />
-        )}
+          {currentStep === 3 && (
+            <StepEmergencyReview
+              form={form}
+              onSubmit={handleSubmit}
+              onBack={() => handleGoToStep(2)}
+              onEditStep={(step) => handleGoToStep(step)}
+              isSubmitting={isSubmitting}
+              submissionError={submissionErrorMessage}
+              lang={lang}
+              t={t}
+            />
+          )}
+        </div>
       </main>
 
       {/* Submission Success Dialog */}
